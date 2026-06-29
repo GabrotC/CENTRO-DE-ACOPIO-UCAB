@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventario Neto - SOS UCAB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding: 20px; color: #1e293b; transition: all 0.3s; }
+        .card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 1000px; margin: auto; transition: all 0.3s; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 20px; }
+        th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; padding: 10px; text-align: left; transition: all 0.3s; }
+        td { background: #f1f5f9; padding: 14px; font-weight: 500; transition: all 0.3s; }
+        .col-in { color: #16a34a; font-weight: bold; }
+        .col-out { color: #e11d48; font-weight: bold; }
+        .col-net { font-size: 1.1em; }
+        
+        td.status-ok { background-color: #f1f5f9; }
+        td.status-low { background-color: #fef9c3; }
+        td.status-empty { background-color: #fee2e2; }
+        
+        .btn-volver { background: #1e293b; color: white; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; display: inline-block; }
+        .btn-theme { background: none; border: none; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
+        .filtro-cat { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; background: white; }
+
+        body.dark-mode { background-color: #0f172a; color: #f8fafc; }
+        body.dark-mode .card { background-color: #1e293b; color: #f8fafc; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        body.dark-mode td { background-color: #334155; color: #f8fafc; }
+        body.dark-mode th { color: #94a3b8; }
+        body.dark-mode .btn-volver { background-color: #4f46e5; }
+        body.dark-mode .filtro-cat { background-color: #0f172a; color: #f8fafc; border-color: #475569; }
+        body.dark-mode td.status-ok { background-color: #334155; }
+        body.dark-mode td.status-low { background-color: #713f12; }
+        body.dark-mode td.status-empty { background-color: #7f1d1d; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="header-flex">
+            <h2>📦 Inventario Neto (Entradas vs Salidas)</h2>
+            <div>
+                <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
+                <a href="index.html" class="btn-volver">Volver al Inicio</a>
+            </div>
+        </div>
+        
+        <div style="margin: 15px 0; display: flex; gap: 10px; flex-wrap: wrap;">
+            <select id="filtroCategoria" class="filtro-cat">
+                <option value="Todas">Todas las categorías</option>
+            </select>
+        </div>
+        
+        <table>
+            <thead><tr><th>Producto</th><th>Categoría</th><th>Entradas (➕)</th><th>Salidas (➖)</th><th>Stock Real (🟰)</th><th>Último Mov.</th><th>Estado</th></tr></thead>
+            <tbody id="tablaNeto"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // --- MODO OSCURO ---
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerText = '☀️';
+        }
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerText = '☀️';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerText = '🌙';
+            }
+        });
+
+        // --- DATOS ---
+        const invEntradas = JSON.parse(localStorage.getItem('inventarioAcopio')) || [];
+        const invSalidas = JSON.parse(localStorage.getItem('salidasAcopio')) || [];
+        const resumen = {};
+
+        // Procesar entradas
+        invEntradas.forEach(item => {
+            if (!resumen[item.producto]) {
+                resumen[item.producto] = { 
+                    categoria: item.categoria, 
+                    entradas: 0, 
+                    salidas: 0, 
+                    neto: 0,
+                    ultimoMov: ''
+                };
+            }
+            resumen[item.producto].entradas += parseInt(item.cantidad);
+            resumen[item.producto].neto += parseInt(item.cantidad);
+            if (item.fecha && item.fecha > (resumen[item.producto].ultimoMov || '')) {
+                resumen[item.producto].ultimoMov = item.fecha;
+            }
+        });
+
+        // Procesar salidas
+        invSalidas.forEach(item => {
+            if (!resumen[item.producto]) {
+                resumen[item.producto] = { 
+                    categoria: item.categoria || "Otros", 
+                    entradas: 0, 
+                    salidas: 0, 
+                    neto: 0,
+                    ultimoMov: ''
+                };
+            }
+            resumen[item.producto].salidas += parseInt(item.cantidad);
+            resumen[item.producto].neto -= parseInt(item.cantidad);
+            if (item.fecha && item.fecha > (resumen[item.producto].ultimoMov || '')) {
+                resumen[item.producto].ultimoMov = item.fecha;
+            }
+        });
+
+        // --- POBLAR FILTRO ---
+        const categorias = new Set();
+        Object.values(resumen).forEach(d => categorias.add(d.categoria));
+        const filtroCat = document.getElementById('filtroCategoria');
+        Array.from(categorias).sort().forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.innerText = c;
+            filtroCat.appendChild(opt);
+        });
+
+        // --- RENDERIZAR ---
+        function renderizar() {
+            const tbody = document.getElementById('tablaNeto');
+            const catSel = filtroCat.value;
+            tbody.innerHTML = '';
+
+            for (const [prod, data] of Object.entries(resumen)) {
+                if (catSel !== 'Todas' && data.categoria !== catSel) continue;
+
+                let claseEstado = "status-ok";
+                let estado = "✅ OK";
+                if (data.neto <= 0) {
+                    estado = "🔴 Agotado";
+                    claseEstado = "status-empty";
+                } else if (data.neto < 10) {
+                    estado = "⚠️ Bajo";
+                    claseEstado = "status-low";
+                }
+
+                tbody.innerHTML += `<tr>
+                    <td>${prod}</td>
+                    <td>${data.categoria}</td>
+                    <td class="col-in">${data.entradas}</td>
+                    <td class="col-out">${data.salidas}</td>
+                    <td class="col-net ${claseEstado}">${data.neto}</td>
+                    <td>${data.ultimoMov || '-'}</td>
+                    <td>${estado}</td>
+                </tr>`;
+            }
+        }
+
+        filtroCat.addEventListener('change', renderizar);
+        renderizar();
+    </script>
+</body>
+</html>

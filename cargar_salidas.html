@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cargando Datos de Salidas...</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f8fafc; text-align: center; padding-top: 100px; color: #1e293b; }
+        .box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>⏳ Inyectando los datos del Excel al sistema...</h2>
+        <p>Por favor espera un segundo.</p>
+    </div>
+
+    <script>
+        // Aquí están todos los despachos que extraje de tu texto
+        const despachosExcel = [
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Pan de sandwich", "cantidad": 32, "institucion": "Caracas Katering / LAGA" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Pasta para bebé", "cantidad": 17, "institucion": "Caracas Katering / LAGA" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Salsa de tomate", "cantidad": 12, "institucion": "Caracas Katering / LAGA" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Frijoles", "cantidad": 5, "institucion": "Caracas Katering / LAGA" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Lentejas", "cantidad": 15, "institucion": "Caracas Katering / LAGA" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Avena", "cantidad": 12, "institucion": "Caracas Katering / LAGA" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Margarina / mantequilla", "cantidad": 5, "institucion": "Caracas Katering / LAGA" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Atún en lata", "cantidad": 58, "institucion": "Caraballeda (Pase Olga)" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Verduras variadas", "cantidad": 21, "institucion": "Caraballeda (Pase Olga)" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Galletas saladas", "cantidad": 4, "institucion": "Caraballeda (Pase Olga)" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Sardinas en lata", "cantidad": 11, "institucion": "Caraballeda (Pase Olga)" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Pañales talla", "cantidad": 24, "institucion": "Particular Dagnificado" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Toallitas húmedas", "cantidad": 4, "institucion": "Particular Dagnificado" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Pasta adulto", "cantidad": 2, "institucion": "Particular Dagnificado" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Harina de maíz precocida", "cantidad": 3, "institucion": "Particular Dagnificado" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Atún en lata", "cantidad": 8, "institucion": "Particular Dagnificado" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Arroz", "cantidad": 2, "institucion": "Particular Dagnificado" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Sardinas en lata", "cantidad": 7, "institucion": "Particular Dagnificado" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Compotas / purés infantiles", "cantidad": 38, "institucion": "Fundación Puerto Azul" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Crema de arroz", "cantidad": 4, "institucion": "Fundación Puerto Azul" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Fórmula para bebé", "cantidad": 16, "institucion": "Fundación Puerto Azul" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Termo / cantimplora", "cantidad": 47, "institucion": "Fundación Puerto Azul" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Pañales talla 3", "cantidad": 10, "institucion": "Fundación Puerto Azul" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Agua potable (botella 355ml)", "cantidad": 48, "institucion": "Fundación Puerto Azul" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Papilla / cereal infantil", "cantidad": 675, "institucion": "Fundación Puerto Azul" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Pala recta", "cantidad": 8, "institucion": "Bomberos Forestales" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Pico / picota", "cantidad": 8, "institucion": "Bomberos Forestales" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Casco de seguridad", "cantidad": 3, "institucion": "Bomberos Forestales" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Guantes de protección (par)", "cantidad": 10, "institucion": "Bomberos Forestales" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Tobos", "cantidad": 20, "institucion": "Bomberos Forestales" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Casco de seguridad", "cantidad": 4, "institucion": "Personal Ucab" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Harina de maíz precocida", "cantidad": 251, "institucion": "Sublette" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Pasta adulto", "cantidad": 153, "institucion": "Sublette" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Atún en lata", "cantidad": 621, "institucion": "Sublette" },
+          { "fecha": "2026-06-27", "nDespacho": "DEP-0006", "producto": "Sardinas en lata", "cantidad": 636, "institucion": "Sublette" }
+        ];
+
+        // Lógica de inyección
+        let salidasGuardadas = JSON.parse(localStorage.getItem('salidasAcopio')) || [];
+        
+        // Evitar que se dupliquen si abres este archivo 2 veces por accidente
+        if (salidasGuardadas.length < despachosExcel.length) {
+            let nuevasSalidas = salidasGuardadas.concat(despachosExcel);
+            localStorage.setItem('salidasAcopio', JSON.stringify(nuevasSalidas));
+            alert("✅ ¡Tus Despachos del Excel han sido registrados con éxito! Te llevaré a la tabla de salidas.");
+        } else {
+            alert("⚠️ Pareciera que los despachos ya habían sido cargados. Te llevaré a la tabla de salidas de todos modos.");
+        }
+
+        // Redireccionar automáticamente
+        window.location.href = "salida.html";
+    </script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal de Voluntarios - Registro Inteligente</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="datos.js"></script>
+    <style>
+        :root { --primary: #4f46e5; --bg: #f8fafc; --text: #1e293b; --card-bg: #ffffff; --navbar-bg: #1e293b; --table-row: #f1f5f9; --border: #e2e8f0; }
+        
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; transition: background-color 0.3s, color 0.3s; }
+        .navbar { background-color: var(--navbar-bg); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.3s; }
+        .nav-links { display: flex; gap: 10px; align-items: center; }
+        .navbar a, .btn-theme { color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; background: rgba(255,255,255,0.1); font-size: 0.9rem; border: none; cursor: pointer; }
+        .btn-theme { font-size: 1.1rem; padding: 6px 12px; }
+        
+        .main-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background-color 0.3s; }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        th { color: #64748b; text-transform: uppercase; font-size: 0.75rem; padding: 10px; text-align: left; }
+        td { background: var(--table-row); padding: 12px; font-size: 0.9rem; transition: background-color 0.3s; }
+        td:first-child { border-radius: 8px 0 0 8px; }
+        td:last-child { border-radius: 0 8px 8px 0; }
+        
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text); transition: all 0.3s; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; }
+        #catBox { background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 10px; border-radius: 8px; font-weight: bold; margin-bottom: 10px; display: none; font-size: 0.85rem; }
+        .btn-sumar, .btn-restar { background: var(--border); color: var(--text); border: none; padding: 2px 8px; cursor: pointer; border-radius: 4px; margin: 0 5px; }
+        .stock-aviso { font-size: 0.8rem; color: #64748b; margin-top: -5px; margin-bottom: 10px; }
+
+        /* MODO OSCURO */
+        body.dark-mode { --bg: #0f172a; --text: #f8fafc; --card-bg: #1e293b; --navbar-bg: #020617; --table-row: #334155; --border: #475569; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h2 id="nombreVoluntario" style="margin:0; font-size: 1.2rem;">🤝 Portal de Voluntarios</h2>
+        <div class="nav-links">
+            <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
+            <a href="inventario_general.html">📊 Ver Inventario General</a>
+            <a href="index.html" style="background: #e11d48;">Salir</a>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="card">
+            <h2>📦 Registro de Sesión (Hoy)</h2>
+            <table>
+                <thead><tr><th>Fecha y Hora</th><th>Producto</th><th>Cant.</th><th>Obs.</th><th>Acción</th></tr></thead>
+                <tbody id="tablaSesion"></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Registrar Donativo</h2>
+            <form id="registroForm">
+                <label style="font-size:0.85rem; color:#64748b;">Producto</label>
+                <input list="listaInsumos" id="producto" placeholder="🔍 Escribe o busca producto..." required autocomplete="off">
+                <datalist id="listaInsumos"></datalist>
+                
+                <div id="catBox">Categoría: <span id="catText"></span></div>
+                
+                <label style="font-size:0.85rem; color:#64748b;">Fecha</label>
+                <input type="date" id="fechaDonativo" required>
+                
+                <label style="font-size:0.85rem; color:#64748b;">Cantidad</label>
+                <input type="number" id="cantidad" placeholder="Cantidad" required min="1">
+                
+                <label style="font-size:0.85rem; color:#64748b;">Presentación / Observación</label>
+                <input type="text" id="observaciones" placeholder="Ej. 500mg, 1L, caja x12">
+                
+                <button type="submit" class="btn-add">Añadir al Inventario</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // VERIFICACIÓN DE ACCESO
+        // ============================================================
+        if (sessionStorage.getItem('userRole') !== 'voluntario') {
+            alert('Debes iniciar sesión como voluntario primero.');
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        // MODO OSCURO
+        // ============================================================
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerText = '☀️';
+        }
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerText = '☀️';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerText = '🌙';
+            }
+        });
+
+        // ============================================================
+        // INICIALIZACIÓN
+        // ============================================================
+        const voluntario = sessionStorage.getItem('voluntarioActivo') || "Voluntario";
+        document.getElementById('nombreVoluntario').innerText = `🤝 Portal de ${voluntario}`;
+
+        const keyGlobal = 'inventarioAcopio';
+        const keySesion = 'sesion_' + voluntario;
+        let invGeneral = JSON.parse(localStorage.getItem(keyGlobal)) || [];
+        let miSesion = JSON.parse(sessionStorage.getItem(keySesion)) || [];
+
+        // ============================================================
+        // CATÁLOGO UNIFICADO: datos.js + añadidos desde maestra.html
+        // ============================================================
+        const catalogoLocal = JSON.parse(localStorage.getItem('catalogoAcopio')) || {};
+        const mapaCategorias = {};
+        const datalist = document.getElementById('listaInsumos');
+
+        // Función para poblar autocomplete desde ambas fuentes
+        function poblarCatalogo() {
+            const yaAgregados = new Set();
+            
+            // 1. Desde datos.js (catalogoMaestroGlobal)
+            for (const [cat, items] of Object.entries(catalogoMaestroGlobal)) {
+                items.forEach(i => {
+                    if (!yaAgregados.has(i)) {
+                        mapaCategorias[i] = cat;
+                        datalist.innerHTML += `<option value="${i}">`;
+                        yaAgregados.add(i);
+                    }
+                });
+            }
+            
+            // 2. Desde localStorage (añadidos por maestra.html)
+            for (const [cat, items] of Object.entries(catalogoLocal)) {
+                items.forEach(i => {
+                    if (!yaAgregados.has(i)) {
+                        mapaCategorias[i] = cat;
+                        datalist.innerHTML += `<option value="${i}">`;
+                        yaAgregados.add(i);
+                    }
+                });
+            }
+        }
+        poblarCatalogo();
+
+        // ============================================================
+        // AUTOCOMPLETAR FECHA
+        // ============================================================
+        document.getElementById('fechaDonativo').value = new Date().toISOString().split('T')[0];
+
+        // Mostrar categoría al seleccionar producto
+        document.getElementById('producto').addEventListener('input', function() {
+            const cat = mapaCategorias[this.value];
+            document.getElementById('catBox').style.display = cat ? 'block' : 'none';
+            document.getElementById('catText').innerText = cat || '';
+        });
+
+        // ============================================================
+        // RENDERIZAR TABLA DE SESIÓN
+        // ============================================================
+        function renderizar() {
+            const tbody = document.getElementById('tablaSesion');
+            tbody.innerHTML = '';
+            miSesion.forEach((item, index) => {
+                tbody.innerHTML += `<tr>
+                    <td>${item.fecha}</td>
+                    <td>${item.producto}</td>
+                    <td>
+                        <button class="btn-restar" onclick="ajustar(${index}, -1)">-</button>
+                        ${item.cantidad}
+                        <button class="btn-sumar" onclick="ajustar(${index}, 1)">+</button>
+                    </td>
+                    <td>${item.obs}</td>
+                    <td><button onclick="borrar(${index})" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold;">X</button></td>
+                </tr>`;
+            });
+            sessionStorage.setItem(keySesion, JSON.stringify(miSesion));
+            localStorage.setItem(keyGlobal, JSON.stringify(invGeneral));
+        }
+
+        // ============================================================
+        // REGISTRAR DONATIVO
+        // ============================================================
+        document.getElementById('registroForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const prod = document.getElementById('producto').value.trim();
+            const cant = parseInt(document.getElementById('cantidad').value);
+            const obs = document.getElementById('observaciones').value.trim();
+            const cat = mapaCategorias[prod] || "Otros";
+            const fechaSel = document.getElementById('fechaDonativo').value;
+            const hora = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            const fechaCompleta = fechaSel + ' ' + hora;
+            
+            if (!prod || !cant) return;
+
+            // Guardar en sesión del voluntario (sessionStorage)
+            miSesion.push({ fecha: fechaCompleta, producto: prod, categoria: cat, cantidad: cant, obs });
+            
+            // Guardar en inventario global (localStorage) — entrada individual
+            invGeneral.push({ fecha: fechaCompleta, producto: prod, categoria: cat, cantidad: cant, obs });
+            
+            renderizar();
+            this.reset();
+            document.getElementById('catBox').style.display = 'none';
+            document.getElementById('fechaDonativo').value = new Date().toISOString().split('T')[0];
+        });
+
+        // ============================================================
+        // AJUSTAR CANTIDAD
+        // ============================================================
+        window.ajustar = function(i, d) {
+            const prod = miSesion[i].producto;
+            const obs = miSesion[i].obs;
+            const cantOrig = miSesion[i].cantidad;
+            const nuevaCant = Math.max(1, cantOrig + d);
+            const diff = nuevaCant - cantOrig;
+            
+            miSesion[i].cantidad = nuevaCant;
+            
+            // Buscar entrada en inventario global (la más reciente con mismo prod+obs)
+            const indices = invGeneral
+                .map((item, idx) => ({ item, idx }))
+                .filter(x => x.item.producto === prod && x.item.obs === obs)
+                .sort((a, b) => b.idx - a.idx);
+            
+            if (indices.length > 0) {
+                invGeneral[indices[0].idx].cantidad += diff;
+            }
+            
+            renderizar();
+        };
+
+        // ============================================================
+        // BORRAR ENTRADA
+        // ============================================================
+        window.borrar = function(i) {
+            if (!confirm('¿Eliminar esta entrada?')) return;
+            
+            const prod = miSesion[i].producto;
+            const obs = miSesion[i].obs;
+            const cant = miSesion[i].cantidad;
+            
+            // Buscar la entrada más reciente en invGeneral
+            const indices = invGeneral
+                .map((item, idx) => ({ item, idx }))
+                .filter(x => x.item.producto === prod && x.item.obs === obs)
+                .sort((a, b) => b.idx - a.idx);
+            
+            if (indices.length > 0) {
+                const idxG = indices[0].idx;
+                if (invGeneral[idxG].cantidad <= cant) {
+                    invGeneral.splice(idxG, 1);
+                } else {
+                    invGeneral[idxG].cantidad -= cant;
+                }
+            }
+            
+            miSesion.splice(i, 1);
+            renderizar();
+        };
+
+        // ============================================================
+        // RENDER INICIAL
+        // ============================================================
+        renderizar();
+    </script>
+</body>
+</html>

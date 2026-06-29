@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventario General - SOS UCAB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding: 20px; color: #1e293b; transition: all 0.3s; }
+        .card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 900px; margin: auto; transition: all 0.3s; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 20px; }
+        th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; padding: 10px; text-align: left; transition: all 0.3s; }
+        td { background: #f1f5f9; padding: 14px; border-radius: 8px; font-weight: 500; transition: all 0.3s; }
+        
+        .btn-volver { background: #1e293b; color: white; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; display: inline-block; }
+        .btn-excel { background: #16a34a; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; }
+        .btn-theme { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+        
+        .filtro-cat { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; background: white; }
+        
+        /* MODO OSCURO */
+        body.dark-mode { background-color: #0f172a; color: #f8fafc; }
+        body.dark-mode .card { background-color: #1e293b; color: #f8fafc; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        body.dark-mode td { background-color: #334155; color: #f8fafc; }
+        body.dark-mode th { color: #94a3b8; }
+        body.dark-mode .btn-volver { background-color: #4f46e5; }
+        body.dark-mode .filtro-cat { background-color: #0f172a; color: #f8fafc; border-color: #475569; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="header-flex">
+            <h2>📊 Reporte General de Existencias (Bruto)</h2>
+            <div>
+                <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
+                <button id="btnExcel" class="btn-excel" onclick="descargarExcel()" style="display:none;">⬇️ Descargar Excel</button>
+                <a href="index.html" class="btn-volver">Volver</a>
+            </div>
+        </div>
+        
+        <div style="margin: 15px 0; display: flex; gap: 10px; flex-wrap: wrap;">
+            <select id="filtroCategoria" class="filtro-cat">
+                <option value="Todas">Todas las categorías</option>
+            </select>
+        </div>
+        
+        <table>
+            <thead><tr><th>Fecha Ingreso</th><th>Producto</th><th>Categoría</th><th>Cantidad</th><th>Presentación</th><th>Estado</th></tr></thead>
+            <tbody id="tablaGeneral"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // --- MODO OSCURO ---
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerText = '☀️';
+        }
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerText = '☀️';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerText = '🌙';
+            }
+        });
+
+        if (sessionStorage.getItem('userRole') === 'admin') {
+            document.getElementById('btnExcel').style.display = 'inline-block';
+        }
+
+        // --- DATOS ---
+        const invLogs = JSON.parse(localStorage.getItem('inventarioAcopio')) || [];
+        const resumen = {};
+
+        // Agrupar por producto + presentación (obs)
+        invLogs.forEach(item => {
+            const key = item.producto + '|||' + (item.obs || '');
+            if (!resumen[key]) {
+                resumen[key] = { 
+                    producto: item.producto, 
+                    categoria: item.categoria, 
+                    cantidad: 0, 
+                    obs: item.obs || '',
+                    primeraFecha: item.fecha || '',
+                    ultimaFecha: item.fecha || ''
+                };
+            }
+            resumen[key].cantidad += parseInt(item.cantidad);
+            // Actualizar fechas
+            if (item.fecha) {
+                if (!resumen[key].primeraFecha || item.fecha < resumen[key].primeraFecha) {
+                    resumen[key].primeraFecha = item.fecha;
+                }
+                if (item.fecha > resumen[key].ultimaFecha) {
+                    resumen[key].ultimaFecha = item.fecha;
+                }
+            }
+        });
+
+        // --- POBLAR FILTRO DE CATEGORÍAS ---
+        const categorias = new Set();
+        Object.values(resumen).forEach(d => categorias.add(d.categoria));
+        const filtroCat = document.getElementById('filtroCategoria');
+        categorias.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.innerText = c;
+            filtroCat.appendChild(opt);
+        });
+
+        // --- RENDERIZAR ---
+        function renderizar() {
+            const tbody = document.getElementById('tablaGeneral');
+            const catSel = filtroCat.value;
+            tbody.innerHTML = '';
+            
+            for (const [key, data] of Object.entries(resumen)) {
+                if (catSel !== 'Todas' && data.categoria !== catSel) continue;
+                
+                let estado = data.cantidad > 10 ? "✅ Hay suficiente" : (data.cantidad > 0 ? "⚠️ Poco stock" : "🔴 Sin existencias");
+                const fechaMostrar = data.ultimaFecha || data.primeraFecha || '-';
+                
+                tbody.innerHTML += `<tr>
+                    <td>${fechaMostrar}</td>
+                    <td>${data.producto}</td>
+                    <td>${data.categoria}</td>
+                    <td>${data.cantidad}</td>
+                    <td>${data.obs || '-'}</td>
+                    <td>${estado}</td>
+                </tr>`;
+            }
+        }
+
+        filtroCat.addEventListener('change', renderizar);
+        renderizar();
+
+        // --- EXPORTAR CSV ---
+        function descargarExcel() {
+            let csv = "Fecha,Producto,Categoría,Cantidad,Presentación\n";
+            for (const [key, data] of Object.entries(resumen)) {
+                csv += `${data.ultimaFecha || ''},${data.producto},${data.categoria},${data.cantidad},${data.obs}\n`;
+            }
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Inventario_Entradas_UCAB.csv';
+            a.click();
+        }
+    </script>
+</body>
+</html>

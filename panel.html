@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Centro de Acopio</title>
+    <script src="datos.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; transition: all 0.3s; }
+        .navbar { background-color: #333; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h2 { margin: 0; }
+        .nav-links { display: flex; gap: 10px; align-items: center; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; }
+        .btn-voluntario { background-color: #5cb85c; }
+        .btn-voluntario:hover { background-color: #4cae4c; }
+        .btn-salir { background-color: #d9534f; }
+        .btn-salir:hover { background-color: #c9302c; }
+        .btn-theme { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: white; }
+        .container { max-width: 1100px; margin: 30px auto; background-color: white; padding: 20px 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: all 0.3s; }
+        h2 { color: #333; border-bottom: 2px solid #5cb85c; padding-bottom: 10px; margin-bottom: 20px; }
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .card { background-color: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; border-top: 4px solid #0275d8; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card h3 { margin: 0; font-size: 12px; color: #666; text-transform: uppercase; }
+        .card p { margin: 10px 0 0; font-size: 24px; font-weight: bold; color: #333; }
+        .filtros-container { display: flex; gap: 10px; margin-bottom: 20px; background-color: #e9ecef; padding: 15px; border-radius: 4px; align-items: center; }
+        .filtros-container input, .filtros-container select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; flex: 1; }
+        .btn-buscar { background-color: #0275d8; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .btn-buscar:hover { background-color: #025aa5; }
+        table { width: 100%; border-collapse: collapse; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 12px; text-align: left; }
+        th { background-color: #f8f8f8; color: #333; }
+        .btn-eliminar { background-color: #d9534f; color: white; border: none; padding: 6px 12px; font-size: 14px; border-radius: 4px; cursor: pointer; }
+        .btn-eliminar:hover { background-color: #c9302c; }
+
+        body.dark-mode { background-color: #0f172a; color: #f8fafc; }
+        body.dark-mode .container { background-color: #1e293b; color: #f8fafc; }
+        body.dark-mode .card { background-color: #334155; color: #f8fafc; }
+        body.dark-mode .card p { color: #f8fafc; }
+        body.dark-mode th { background-color: #334155; color: #f8fafc; }
+        body.dark-mode td { background-color: #0f172a; color: #f8fafc; }
+        body.dark-mode .filtros-container { background-color: #334155; }
+        body.dark-mode .filtros-container input, body.dark-mode .filtros-container select { background-color: #0f172a; color: #f8fafc; border-color: #475569; }
+        body.dark-mode .navbar { background-color: #020617; }
+        body.dark-mode h2 { color: #f8fafc; border-bottom-color: #4f46e5; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h2>📊 Panel de Control - Inventario</h2>
+        <div class="nav-links">
+            <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
+            <a href="voluntario.html" class="btn-voluntario">Portal Voluntarios</a>
+            <a href="index.html" class="btn-salir">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Resumen del Inventario General</h2>
+        <div class="dashboard" id="dashboardCards"></div>
+
+        <h2>Lista de Artículos</h2>
+        <div class="filtros-container">
+            <input type="text" id="buscador" placeholder="🔍 Buscar en inventario...">
+            <button id="btnBuscar" class="btn-buscar">Buscar</button>
+            <select id="filtroCategoria">
+                <option value="Todos">Todas las categorías</option>
+            </select>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Cantidad</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tablaInventario"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // --- MODO OSCURO ---
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerText = '☀️';
+        }
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            themeToggle.innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        });
+
+        // --- DATOS ---
+        let inventario = JSON.parse(localStorage.getItem('inventarioAcopio')) || [];
+        const tabla = document.getElementById('tablaInventario');
+        const buscador = document.getElementById('buscador');
+        const btnBuscar = document.getElementById('btnBuscar');
+        const filtroCategoria = document.getElementById('filtroCategoria');
+
+        // --- POBLAR FILTRO DE CATEGORÍAS DINÁMICAMENTE ---
+        const categorias = new Set();
+        inventario.forEach(item => categorias.add(item.categoria));
+        Array.from(categorias).sort().forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            filtroCategoria.appendChild(opt);
+        });
+
+        // --- GENERAR CARDS DEL DASHBOARD DINÁMICAMENTE ---
+        function renderDashboard() {
+            const dash = document.getElementById('dashboardCards');
+            const resumenCat = {};
+            let total = 0;
+
+            inventario.forEach(item => {
+                const cant = parseInt(item.cantidad) || 0;
+                total += cant;
+                const cat = item.categoria || 'Otros';
+                resumenCat[cat] = (resumenCat[cat] || 0) + cant;
+            });
+
+            // Card de total
+            dash.innerHTML = `<div class="card" style="border-top-color: #0275d8;"><h3>Total Unidades</h3><p>${total}</p></div>`;
+
+            // Cards por categoría
+            const colores = ['#f0ad4e','#d9534f','#8a6d3b','#ffb6c1','#5bc0de','#5cb85c','#777','#4f46e5','#e11d48','#16a34a'];
+            let i = 0;
+            for (const [cat, cant] of Object.entries(resumenCat).sort()) {
+                const color = colores[i % colores.length];
+                dash.innerHTML += `<div class="card" style="border-top-color: ${color};"><h3>${cat}</h3><p>${cant}</p></div>`;
+                i++;
+            }
+        }
+
+        // --- RENDERIZAR TABLA ---
+        function actualizarTabla() {
+            tabla.innerHTML = '';
+            const textoBusqueda = buscador.value.toLowerCase();
+            const catFiltro = filtroCategoria.value;
+
+            inventario.forEach(function(item, index) {
+                const coincideTexto = item.producto.toLowerCase().includes(textoBusqueda);
+                const coincideCategoria = catFiltro === 'Todos' || item.categoria === catFiltro;
+
+                if (coincideTexto && coincideCategoria) {
+                    const nuevaFila = document.createElement('tr');
+                    nuevaFila.innerHTML = `
+                        <td>${item.producto}</td>
+                        <td>${item.categoria}</td>
+                        <td>${item.cantidad}</td>
+                        <td><button class="btn-eliminar" data-index="${index}">Borrar</button></td>
+                    `;
+                    tabla.appendChild(nuevaFila);
+                }
+            });
+
+            document.querySelectorAll('.btn-eliminar').forEach(boton => {
+                boton.addEventListener('click', function() {
+                    if (!confirm('¿Eliminar este registro?')) return;
+                    const indice = this.getAttribute('data-index');
+                    inventario.splice(indice, 1);
+                    localStorage.setItem('inventarioAcopio', JSON.stringify(inventario));
+                    actualizarTabla();
+                    renderDashboard();
+                });
+            });
+        }
+
+        buscador.addEventListener('input', actualizarTabla);
+        btnBuscar.addEventListener('click', actualizarTabla);
+        filtroCategoria.addEventListener('change', actualizarTabla);
+
+        renderDashboard();
+        actualizarTabla();
+    </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SOS UCAB - Centro de Acopio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 20px; transition: background-color 0.3s, color 0.3s; }
+        .container { max-width: 900px; margin: 0 auto; position: relative; }
+        h1 { color: #1e293b; text-align: center; margin-bottom: 40px; transition: color 0.3s; }
+        .section-title { font-size: 0.85rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
+        
+        .voluntarios-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-bottom: 40px; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.3s; border: 2px solid transparent; text-align: center; color: #475569; font-weight: 600; }
+        .card:hover { transform: translateY(-5px); border-color: #4f46e5; background: #eef2ff; color: #4f46e5; }
+        
+        .admin-card { background: #1e293b; color: white; border: 2px solid #1e293b; }
+        .admin-card:hover { background: #334155; border-color: #f59e0b; color: #f59e0b; }
+        .salida-card { background: #e11d48; color: white; border: 2px solid #e11d48; }
+        .salida-card:hover { background: #be123c; border-color: #fda4af; color: white; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 100; }
+        .modal { background: white; padding: 30px; border-radius: 20px; width: 300px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        .btn-entrar { background: #4f46e5; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: 600; font-size: 1rem; }
+        .btn-cancel { background: #e2e8f0; color: #64748b; border: none; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+        .btn-theme { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+
+        /* --- TEMA OSCURO GLOBAL --- */
+        body.dark-mode { background-color: #0f172a; color: #f8fafc; }
+        body.dark-mode .card, body.dark-mode .modal { background-color: #1e293b; color: #f8fafc; border-color: #334155; }
+        body.dark-mode input { background-color: #0f172a; color: #f8fafc; border-color: #475569; }
+        body.dark-mode .admin-card { background-color: #0f172a; border-color: #4f46e5; }
+        body.dark-mode h1 { color: #f8fafc; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
+        <h1>Centro de Acopio SOS UCAB</h1>
+        
+        <div class="section-title">Administración</div>
+        <div class="voluntarios-grid">
+            <div class="card admin-card" onclick="window.location.href='inventario_general.html'">📊 Inventario Entradas</div>
+            <div class="card admin-card" onclick="window.location.href='inventario_salidas.html'">📦 Inventario Neto</div>
+            <div class="card admin-card" onclick="abrirModalMaestra()">⚙️ Hoja Maestra</div>
+        </div>
+
+        <div class="section-title">Módulo de Despacho</div>
+        <div class="voluntarios-grid">
+            <div class="card salida-card" onclick="abrirModalSalida()">🚚 Registrar Salidas</div>
+        </div>
+
+        <div class="section-title">Voluntarios (Entradas)</div>
+        <div class="voluntarios-grid" id="gridVoluntarios"></div>
+    </div>
+
+    <!-- Modal Hoja Maestra (Admin) -->
+    <div id="modalMaestra" class="modal-overlay">
+        <div class="modal">
+            <h3>Acceso Administrador</h3>
+            <p>Clave para editar el catálogo:</p>
+            <input type="password" id="passMaestra" placeholder="Introduce la clave...">
+            <button class="btn-entrar" onclick="verificarMaestra()">Entrar</button>
+            <button class="btn-cancel" onclick="cerrarModal('modalMaestra')">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal Voluntario -->
+    <div id="modalVoluntario" class="modal-overlay">
+        <div class="modal">
+            <h3>Acceso Voluntarios</h3>
+            <p>Clave de acceso para voluntarios:</p>
+            <input type="password" id="passVoluntario" placeholder="Introduce la clave..." onkeydown="if(event.key==='Enter') verificarVoluntario()">
+            <button class="btn-entrar" onclick="verificarVoluntario()">Entrar</button>
+            <button class="btn-cancel" onclick="cerrarModal('modalVoluntario')">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal Salida (Despacho) -->
+    <div id="modalSalida" class="modal-overlay">
+        <div class="modal">
+            <h3>Acceso Despacho</h3>
+            <p>Clave para registrar salidas:</p>
+            <input type="password" id="passSalida" placeholder="Introduce la clave..." onkeydown="if(event.key==='Enter') verificarSalida()">
+            <button class="btn-entrar" onclick="verificarSalida()">Entrar</button>
+            <button class="btn-cancel" onclick="cerrarModal('modalSalida')">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        // --- MODO OSCURO ---
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerText = '☀️';
+        }
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerText = '☀️';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerText = '🌙';
+            }
+        });
+
+        // --- VOLUNTARIOS ---
+        const grid = document.getElementById('gridVoluntarios');
+        for (let i = 1; i <= 14; i++) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerText = `Voluntario ${i}`;
+            card.onclick = () => abrirModalVoluntario(i);
+            grid.appendChild(card);
+        }
+
+        // --- MODALES ---
+        let voluntarioSeleccionado = null;
+
+        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function abrirModalVoluntario(num) {
+            voluntarioSeleccionado = num;
+            document.getElementById('passVoluntario').value = '';
+            abrirModal('modalVoluntario');
+        }
+        function abrirModalMaestra() {
+            document.getElementById('passMaestra').value = '';
+            abrirModal('modalMaestra');
+        }
+        function abrirModalSalida() {
+            document.getElementById('passSalida').value = '';
+            abrirModal('modalSalida');
+        }
+
+        function verificarMaestra() {
+            const pass = document.getElementById('passMaestra').value;
+            if (pass === "UCAB2026acopio") {
+                sessionStorage.setItem('userRole', 'admin');
+                window.location.href = 'maestra.html';
+            } else {
+                alert("Clave incorrecta.");
+            }
+        }
+
+        function verificarVoluntario() {
+            const pass = document.getElementById('passVoluntario').value;
+            if (pass === "voluntario") {
+                sessionStorage.setItem('userRole', 'voluntario');
+                sessionStorage.setItem('voluntarioActivo', `Voluntario ${voluntarioSeleccionado}`);
+                window.location.href = 'voluntario.html';
+            } else {
+                alert("Clave incorrecta.");
+            }
+        }
+
+        function verificarSalida() {
+            const pass = document.getElementById('passSalida').value;
+            if (pass === "despacho") {
+                sessionStorage.setItem('userRole', 'despacho');
+                window.location.href = 'salida.html';
+            } else {
+                alert("Clave incorrecta.");
+            }
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.querySelectorAll('.modal-overlay').forEach(el => {
+            el.addEventListener('click', function(e) {
+                if (e.target === this) cerrarModal(this.id);
+            });
+        });
+    </script>
+</body>
+</html>
