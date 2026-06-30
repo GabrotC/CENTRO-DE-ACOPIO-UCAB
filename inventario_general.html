@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding: 20px; color: #1e293b; transition: all 0.3s; }
-        .card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 900px; margin: auto; transition: all 0.3s; }
+        .card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 1000px; margin: auto; transition: all 0.3s; }
         .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         
         table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 20px; }
@@ -15,8 +15,11 @@
         td { background: #f1f5f9; padding: 14px; border-radius: 8px; font-weight: 500; transition: all 0.3s; }
         
         .btn-volver { background: #1e293b; color: white; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; display: inline-block; }
-        .btn-excel { background: #16a34a; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; }
         .btn-theme { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+        .btn-accion { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: transform 0.2s; }
+        .btn-accion:hover { transform: scale(1.05); }
+        .btn-editar { background: #f59e0b; color: white; margin-right: 5px; }
+        .btn-eliminar { background: #e11d48; color: white; }
         
         .filtro-cat { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; background: white; }
         
@@ -33,10 +36,9 @@
 
     <div class="card">
         <div class="header-flex">
-            <h2>📊 Reporte General de Existencias (Bruto)</h2>
+            <h2>📊 Reporte General de Existencias (Detallado)</h2>
             <div>
                 <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
-                <button id="btnExcel" class="btn-excel" onclick="descargarExcel()" style="display:none;">⬇️ Descargar Excel</button>
                 <a href="index.html" class="btn-volver">Volver</a>
             </div>
         </div>
@@ -48,7 +50,7 @@
         </div>
         
         <table>
-            <thead><tr><th>Fecha Ingreso</th><th>Producto</th><th>Categoría</th><th>Cantidad</th><th>Presentación</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Fecha Ingreso</th><th>Producto</th><th>Categoría</th><th>Cantidad</th><th>Presentación</th><th>Acciones</th></tr></thead>
             <tbody id="tablaGeneral"></tbody>
         </table>
     </div>
@@ -56,30 +58,20 @@
     <script>
         // --- MODO OSCURO ---
         const themeToggle = document.getElementById('themeToggle');
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-            themeToggle.innerText = '☀️';
-        }
+        if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); themeToggle.innerText = '☀️'; }
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark');
-                themeToggle.innerText = '☀️';
-            } else {
-                localStorage.setItem('theme', 'light');
-                themeToggle.innerText = '🌙';
-            }
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            themeToggle.innerText = isDark ? '☀️' : '🌙';
         });
-
-        if (sessionStorage.getItem('userRole') === 'admin') {
-            document.getElementById('btnExcel').style.display = 'inline-block';
-        }
 
         // ---- SUPABASE ----
         const SUPABASE_URL = "https://sjvpcgjazubguzoxzwxl.supabase.co";
         const SUPABASE_KEY = "sb_publishable_dR9ot8lbyJHZTxupgdeJRg_WmqYWFk8";
+        const headersSupa = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" };
 
-        const resumen = {};
+        let inventarioDatos = [];
         const filtroCat = document.getElementById('filtroCategoria');
 
         // --- RENDERIZAR TABLA ---
@@ -88,67 +80,40 @@
             const catSel = filtroCat.value;
             tbody.innerHTML = '';
 
-            for (const [key, data] of Object.entries(resumen)) {
-                if (catSel !== 'Todas' && data.categoria !== catSel) continue;
-
-                let estado = data.cantidad > 10 ? "✅ Hay suficiente" : (data.cantidad > 0 ? "⚠️ Poco stock" : "🔴 Sin existencias");
-                const fechaMostrar = data.ultimaFecha || data.primeraFecha || '-';
+            inventarioDatos.forEach(item => {
+                if (catSel !== 'Todas' && item.categoria !== catSel) return;
 
                 tbody.innerHTML += `<tr>
-                    <td>${fechaMostrar}</td>
-                    <td>${data.producto}</td>
-                    <td>${data.categoria || '-'}</td>
-                    <td>${data.cantidad}</td>
-                    <td>${data.obs || '-'}</td>
-                    <td>${estado}</td>
+                    <td>${item.fecha || '-'}</td>
+                    <td>${item.producto}</td>
+                    <td>${item.categoria || '-'}</td>
+                    <td style="font-weight:bold;">${item.cantidad}</td>
+                    <td>${item.obs || '-'}</td>
+                    <td>
+                        <button class="btn-accion btn-editar" onclick="editarItem('${item.id}', '${item.producto.replace(/'/g, "\\'")}', ${item.cantidad})">✏️</button>
+                        <button class="btn-accion btn-eliminar" onclick="eliminarItem('${item.id}', '${item.producto.replace(/'/g, "\\'")}')">🗑️</button>
+                    </td>
                 </tr>`;
-            }
+            });
         }
 
-        // --- CARGAR DATOS DESDE SUPABASE ---
+        // --- CARGAR DATOS ---
         function cargarInventario() {
             document.getElementById('tablaGeneral').innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">⏳ Cargando datos...</td></tr>';
 
-            fetch(`${SUPABASE_URL}/rest/v1/inventario?select=*&order=created_at.asc`, {
-                headers: {
-                    "apikey": SUPABASE_KEY,
-                    "Authorization": `Bearer ${SUPABASE_KEY}`
-                }
-            })
+            fetch(`${SUPABASE_URL}/rest/v1/inventario?select=*&order=created_at.desc`, { headers: headersSupa })
             .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
             .then(rows => {
-                // Limpiar resumen y reconstruir
-                Object.keys(resumen).forEach(k => delete resumen[k]);
-
-                rows.forEach(item => {
-                    const key = item.producto + '|||' + (item.obs || '');
-                    if (!resumen[key]) {
-                        resumen[key] = {
-                            producto: item.producto,
-                            categoria: item.categoria || '',
-                            cantidad: 0,
-                            obs: item.obs || '',
-                            primeraFecha: item.fecha || '',
-                            ultimaFecha: item.fecha || ''
-                        };
-                    }
-                    resumen[key].cantidad += parseInt(item.cantidad) || 0;
-                    if (item.fecha) {
-                        if (!resumen[key].primeraFecha || item.fecha < resumen[key].primeraFecha)
-                            resumen[key].primeraFecha = item.fecha;
-                        if (item.fecha > resumen[key].ultimaFecha)
-                            resumen[key].ultimaFecha = item.fecha;
-                    }
-                });
-
-                // Poblar filtro de categorías
-                const categorias = new Set(Object.values(resumen).map(d => d.categoria).filter(Boolean));
+                inventarioDatos = rows;
+                
+                // Poblar filtro
+                const categorias = new Set(rows.map(d => d.categoria).filter(Boolean));
+                const catActual = filtroCat.value;
                 filtroCat.innerHTML = '<option value="Todas">Todas las categorías</option>';
                 Array.from(categorias).sort().forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c; opt.innerText = c;
-                    filtroCat.appendChild(opt);
+                    filtroCat.innerHTML += `<option value="${c}">${c}</option>`;
                 });
+                filtroCat.value = Array.from(categorias).includes(catActual) ? catActual : 'Todas';
 
                 renderizar();
             })
@@ -157,44 +122,51 @@
             });
         }
 
+        // --- ACCIONES CON CONFIRMACIÓN ---
+        function editarItem(id, producto, cantActual) {
+            const nuevaCant = prompt(`✏️ Modificando: ${producto}\n\nIngresa la nueva cantidad:`, cantActual);
+            
+            if (nuevaCant !== null && nuevaCant.trim() !== "" && !isNaN(nuevaCant)) {
+                if (confirm(`⚠️ ¿Estás seguro de que deseas guardar el cambio?\n\nProducto: ${producto}\nNueva cantidad: ${nuevaCant}`)) {
+                    
+                    fetch(`${SUPABASE_URL}/rest/v1/inventario?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: { ...headersSupa, "Prefer": "return=minimal" },
+                        body: JSON.stringify({ cantidad: parseInt(nuevaCant) })
+                    }).then(() => cargarInventario()).catch(err => alert("Error al actualizar: " + err));
+                }
+            } else if (nuevaCant !== null) {
+                alert("❌ Cantidad inválida. Operación cancelada.");
+            }
+        }
+
+        function eliminarItem(id, producto) {
+            if (confirm(`🚨 ADVERTENCIA 🚨\n\n¿Estás completamente seguro de que deseas eliminar el registro de "${producto}"?\n\nEsta acción NO se puede deshacer.`)) {
+                fetch(`${SUPABASE_URL}/rest/v1/inventario?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: headersSupa
+                }).then(() => cargarInventario()).catch(err => alert("Error al eliminar: " + err));
+            }
+        }
+
         filtroCat.addEventListener('change', renderizar);
         cargarInventario();
 
-        // --- EXPORTAR CSV ---
-        function descargarExcel() {
-            let csv = "Fecha,Producto,Categoría,Cantidad,Presentación\n";
-            for (const [key, data] of Object.entries(resumen)) {
-                csv += `${data.ultimaFecha || ''},${data.producto},${data.categoria},${data.cantidad},${data.obs}\n`;
-            }
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'Inventario_Entradas_UCAB.csv';
-            a.click();
-        }
-        // ============================================================
-        // SUPABASE REALTIME — admin ve cambios en vivo
-        // ============================================================
+        // --- SUPABASE REALTIME ---
         const { createClient } = window.supabase;
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const badge = document.createElement('span');
-        badge.id = 'liveBadge';
         badge.style.cssText = 'background:#16a34a;color:white;font-size:0.7rem;padding:3px 10px;border-radius:99px;margin-left:10px;animation:pulse 2s infinite;';
         badge.innerText = '🟢 En vivo';
-        document.querySelector('h2')?.appendChild(badge);
+        document.querySelector('h2').appendChild(badge);
 
         db.channel('inventario-admin')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inventario' }, () => {
-              badge.innerText = '🟡 Actualizando...';
-              badge.style.background = '#f59e0b';
-              cargarInventario().then(() => {
-                  badge.innerText = '🟢 En vivo';
-                  badge.style.background = '#16a34a';
-              });
-          })
-          .subscribe();
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario' }, () => {
+              badge.innerText = '🟡 Actualizando...'; badge.style.background = '#f59e0b';
+              cargarInventario();
+              setTimeout(() => { badge.innerText = '🟢 En vivo'; badge.style.background = '#16a34a'; }, 1000);
+          }).subscribe();
     </script>
 </body>
 </html>
