@@ -2,535 +2,210 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Voluntarios - Registro de Donativos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
+    <title>Portal de Voluntarios - Registro Inteligente</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <script src="datos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-light: #818cf8;
-            --bg: #f8fafc;
-            --text: #1e293b;
-            --card-bg: #ffffff;
-            --navbar-bg: #1e293b;
-            --table-row: #f1f5f9;
-            --border: #e2e8f0;
-            --success: #16a34a;
-            --danger: #e11d48;
-            --warning: #f59e0b;
-        }
-        body.dark-mode {
-            --bg: #0f172a;
-            --text: #f8fafc;
-            --card-bg: #1e293b;
-            --navbar-bg: #020617;
-            --table-row: #334155;
-            --border: #475569;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            transition: all 0.3s ease;
-        }
-
-        /* NAVBAR */
-        .navbar {
-            background-color: var(--navbar-bg);
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .navbar h2 { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
-        .nav-links { display: flex; gap: 0.75rem; align-items: center; }
-        .btn-nav {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            font-size: 0.9rem;
-            border: none;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-nav:hover { background: rgba(255, 255, 255, 0.2); }
-        .btn-theme { font-size: 1.2rem; padding: 0.4rem 0.6rem; }
-        .btn-danger { background: var(--danger); }
-        .btn-danger:hover { background: #be123c; }
-
-        /* LAYOUT */
-        .main-layout {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 1.5rem;
-            padding: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        @media (max-width: 1024px) {
-            .main-layout { grid-template-columns: 1fr; }
-        }
-
-        /* CARDS */
-        .card {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-        }
-        .card h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* FORM */
-        .form-group { margin-bottom: 1rem; }
-        .form-group label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #64748b;
-            margin-bottom: 0.25rem;
-            text-transform: uppercase;
-        }
-        body.dark-mode .form-group label { color: #94a3b8; }
-        input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-        }
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-        }
-        
-        .cat-badge {
-            display: inline-block;
-            background: rgba(79, 70, 229, 0.1);
-            color: var(--primary);
-            padding: 0.25rem 0.75rem;
-            border-radius: 99px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-top: 0.5rem;
-            display: none;
-        }
-        body.dark-mode .cat-badge { background: rgba(129, 140, 248, 0.2); color: var(--primary-light); }
-
-        .btn {
-            width: 100%;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .btn-add { background: var(--primary); margin-top: 0.5rem; }
-        .btn-add:hover { background: #4338ca; }
-        .btn-confirm { background: var(--success); margin-top: 1rem; padding: 1rem; font-size: 1.1rem; }
-        .btn-confirm:hover { background: #15803d; }
-        .btn-confirm:disabled { background: #9ca3af; cursor: not-allowed; opacity: 0.7; }
-
-        /* CART TABLE */
-        .cart-container { overflow-x: auto; flex: 1; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
-        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
-        th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 600; }
-        body.dark-mode th { color: #94a3b8; }
-        td { font-size: 0.9rem; }
-        
-        .empty-cart {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #64748b;
-        }
-        .empty-cart span { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
-
-        .qty-control {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .btn-icon {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            color: var(--text);
-            width: 28px;
-            height: 28px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-icon:hover { background: var(--border); }
-        .btn-remove { color: var(--danger); border-color: transparent; background: transparent; }
-        .btn-remove:hover { background: rgba(225, 29, 72, 0.1); }
-
-        /* HISTORY */
-        .history-card { margin-top: 1.5rem; }
-        .history-list { list-style: none; max-height: 250px; overflow-y: auto; }
-        .history-item {
-            padding: 0.75rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-        }
-        .history-item:last-child { border-bottom: none; }
-        .history-qty { font-weight: 700; color: var(--success); }
+        :root { --primary: #4f46e5; --bg: #f8fafc; --text: #1e293b; --card-bg: #ffffff; --navbar-bg: #1e293b; --table-row: #f1f5f9; --border: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; transition: background-color 0.3s, color 0.3s; }
+        .navbar { background-color: var(--navbar-bg); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.3s; }
+        .nav-links { display: flex; gap: 10px; align-items: center; }
+        .navbar a, .btn-theme { color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; background: rgba(255,255,255,0.1); font-size: 0.9rem; border: none; cursor: pointer; }
+        .btn-theme { font-size: 1.1rem; padding: 6px 12px; }
+        .main-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background-color 0.3s; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        th { color: #64748b; text-transform: uppercase; font-size: 0.75rem; padding: 10px; text-align: left; }
+        td { background: var(--table-row); padding: 12px; font-size: 0.9rem; transition: background-color 0.3s; }
+        td:first-child { border-radius: 8px 0 0 8px; }
+        td:last-child { border-radius: 0 8px 8px 0; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; background-color: var(--card-bg); color: var(--text); transition: all 0.3s; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; }
+        #catBox { background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 10px; border-radius: 8px; font-weight: bold; margin-bottom: 10px; display: none; font-size: 0.85rem; }
+        body.dark-mode { --bg: #0f172a; --text: #f8fafc; --card-bg: #1e293b; --navbar-bg: #020617; --table-row: #334155; --border: #475569; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
-        <h2 id="voluntarioNombre">🤝 Portal de Voluntarios</h2>
+    <div class="navbar">
+        <h2 id="nombreVoluntario" style="margin:0; font-size: 1.2rem;">🤝 Portal de Voluntarios</h2>
         <div class="nav-links">
-            <button id="themeToggle" class="btn-nav btn-theme">🌙</button>
-            <a href="inventario_general.html" class="btn-nav">📊 Inventario</a>
-            <a href="index.html" class="btn-nav btn-danger">Salir</a>
+            <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
+            <a href="inventario_general.html">📊 Ver Inventario General</a>
+            <a href="index.html" style="background: #e11d48;">Salir</a>
         </div>
-    </nav>
+    </div>
 
     <div class="main-layout">
-        
-        <!-- LEFT: CART -->
-        <div class="card" style="grid-row: span 2;">
-            <h3>🛒 Carrito de Donación <span id="cartCountBadge" style="background:var(--primary);color:white;padding:2px 8px;border-radius:12px;font-size:0.8rem;margin-left:auto;">0</span></h3>
-            
-            <div class="cart-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Categoría</th>
-                            <th>Cant.</th>
-                            <th>Obs.</th>
-                            <th style="text-align:right;">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cartBody">
-                        <tr><td colspan="5">
-                            <div class="empty-cart">
-                                <span>📦</span>
-                                El carrito está vacío.<br>Agrega productos desde el panel derecho.
-                            </div>
-                        </td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <button id="btnConfirmar" class="btn btn-confirm" onclick="confirmarDonacion()" disabled>
-                ✅ Confirmar Donación
-            </button>
+        <div class="card">
+            <h2>📦 Registro de Sesión (Hoy)</h2>
+            <table>
+                <thead><tr><th>Fecha y Hora</th><th>Producto</th><th>Cant.</th><th>Obs.</th><th>Acción</th></tr></thead>
+                <tbody id="tablaSesion"></tbody>
+            </table>
         </div>
 
-        <!-- RIGHT: ADD FORM -->
         <div class="card">
-            <h3>➕ Agregar Insumo</h3>
-            <form id="addForm">
-                <div class="form-group">
-                    <label>Producto</label>
-                    <input list="listaInsumos" id="producto" placeholder="Escribe o selecciona..." required autocomplete="off">
-                    <datalist id="listaInsumos"></datalist>
-                    <div id="catBadge" class="cat-badge">Categoría: <span id="catText"></span></div>
-                </div>
+            <h2>Registrar Donativo</h2>
+            <form id="registroForm">
+                <label style="font-size:0.85rem; color:#64748b;">Producto</label>
+                <input list="listaInsumos" id="producto" placeholder="🔍 Escribe o busca producto..." required autocomplete="off">
+                <datalist id="listaInsumos"></datalist>
                 
-                <div style="display: flex; gap: 1rem;">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Cantidad</label>
-                        <input type="number" id="cantidad" min="1" value="1" required>
-                    </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label>Fecha</label>
-                        <input type="date" id="fecha" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Presentación / Observación (Opcional)</label>
-                    <input type="text" id="observacion" placeholder="Ej. 500mg, Caja de 12, etc.">
-                </div>
-
-                <button type="submit" class="btn btn-add">👇 Agregar al Carrito</button>
+                <div id="catBox">Categoría: <span id="catText"></span></div>
+                
+                <label style="font-size:0.85rem; color:#64748b;">Fecha</label>
+                <input type="date" id="fechaDonativo" required>
+                
+                <label style="font-size:0.85rem; color:#64748b;">Cantidad</label>
+                <input type="number" id="cantidad" placeholder="Cantidad" required min="1">
+                
+                <label style="font-size:0.85rem; color:#64748b;">Presentación / Observación</label>
+                <input type="text" id="observaciones" placeholder="Ej. 500mg, 1L, caja x12">
+                
+                <button type="submit" id="btnSubmitDonativo" class="btn-add">Añadir al Inventario</button>
             </form>
         </div>
-
-        <!-- RIGHT BOTTOM: HISTORY -->
-        <div class="card history-card">
-            <h3>🕰️ Donaciones confirmadas hoy</h3>
-            <ul class="history-list" id="historyList">
-                <li class="history-item" style="justify-content:center;color:#64748b;">⏳ Cargando...</li>
-            </ul>
-        </div>
-
     </div>
 
     <script>
-        // INIT
-        verificarAcceso('voluntario');
-        initTheme('themeToggle');
+        const SUPABASE_URL = "https://sjvpcgjazubguzoxzwxl.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_dR9ot8lbyJHZTxupgdeJRg_WmqYWFk8";
+        const { createClient } = window.supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const voluntarioNombre = sessionStorage.getItem('voluntarioActivo') || 'Voluntario';
-        document.getElementById('voluntarioNombre').innerText = `🤝 Portal de ${voluntarioNombre}`;
-        document.getElementById('fecha').value = fechaHoy();
+        if (sessionStorage.getItem('userRole') !== 'voluntario') {
+            alert('Debes iniciar sesión como voluntario primero.');
+            window.location.href = 'index.html';
+        }
 
-        // CATALOG SETUP
-        const datalist = document.getElementById('listaInsumos');
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); themeToggle.innerText = '☀️'; }
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            themeToggle.innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        });
+
+        const voluntario = sessionStorage.getItem('voluntarioActivo') || "Voluntario";
+        document.getElementById('nombreVoluntario').innerText = `🤝 Portal de ${voluntario}`;
+        let invGeneral = JSON.parse(localStorage.getItem('inventarioAcopio')) || [];
+
+        const catalogoLocal = JSON.parse(localStorage.getItem('catalogoAcopio')) || {};
         const mapaCategorias = {};
-        
-        // Merge from global and local
-        const catGlobal = catalogoMaestroGlobal || {};
-        const catLocal = JSON.parse(localStorage.getItem('catalogoAcopio')) || {};
-        const allCats = { ...catGlobal };
-        
-        for (const [cat, items] of Object.entries(catLocal)) {
-            if (!allCats[cat]) allCats[cat] = [];
-            items.forEach(i => { if (!allCats[cat].includes(i)) allCats[cat].push(i); });
-        }
+        const datalist = document.getElementById('listaInsumos');
 
-        const addedProducts = new Set();
-        for (const [cat, items] of Object.entries(allCats)) {
-            items.forEach(prod => {
-                if (!addedProducts.has(prod)) {
-                    mapaCategorias[prod] = cat;
-                    const opt = document.createElement('option');
-                    opt.value = prod;
-                    datalist.appendChild(opt);
-                    addedProducts.add(prod);
-                }
-            });
-        }
-
-        // CATEGORY DETECTION
-        const prodInput = document.getElementById('producto');
-        const catBadge = document.getElementById('catBadge');
-        const catText = document.getElementById('catText');
-
-        prodInput.addEventListener('input', () => {
-            const cat = mapaCategorias[prodInput.value];
-            if (cat) {
-                catText.innerText = cat;
-                catBadge.style.display = 'inline-block';
-            } else {
-                catBadge.style.display = 'none';
-            }
-        });
-
-        // CART LOGIC
-        let carrito = [];
-
-        function renderCarrito() {
-            const tbody = document.getElementById('cartBody');
-            const countBadge = document.getElementById('cartCountBadge');
-            const btnConfirmar = document.getElementById('btnConfirmar');
-            
-            countBadge.innerText = carrito.length;
-            
-            if (carrito.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5"><div class="empty-cart"><span>📦</span>El carrito está vacío.</div></td></tr>`;
-                btnConfirmar.disabled = true;
-                return;
-            }
-
-            btnConfirmar.disabled = false;
-            tbody.innerHTML = '';
-            
-            carrito.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${item.producto}</strong></td>
-                    <td><span style="font-size:0.75rem;background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--border);">${item.categoria}</span></td>
-                    <td>
-                        <div class="qty-control">
-                            <button class="btn-icon" onclick="cambiarCant(${index}, -1)">-</button>
-                            <span style="width:20px;text-align:center;">${item.cantidad}</span>
-                            <button class="btn-icon" onclick="cambiarCant(${index}, 1)">+</button>
-                        </div>
-                    </td>
-                    <td>${item.obs || '-'}</td>
-                    <td style="text-align:right;">
-                        <button class="btn-icon btn-remove" onclick="removerItem(${index})" title="Eliminar">🗑️</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        document.getElementById('addForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const prod = prodInput.value.trim();
-            const cant = parseInt(document.getElementById('cantidad').value);
-            const obs = document.getElementById('observacion').value.trim();
-            const cat = mapaCategorias[prod] || 'Otros';
-            const fechaVal = document.getElementById('fecha').value;
-            const datetime = `${fechaVal} ${horaActual()}`;
-
-            if (!prod || cant < 1) return;
-
-            // Check if already in cart
-            const existingIdx = carrito.findIndex(i => i.producto === prod && i.obs === obs);
-            if (existingIdx >= 0) {
-                carrito[existingIdx].cantidad += cant;
-            } else {
-                carrito.push({
-                    producto: prod,
-                    categoria: cat,
-                    cantidad: cant,
-                    obs: obs,
-                    fecha: datetime,
-                    voluntario: voluntarioNombre
+        // Poblar inicial con local
+        function poblarCatalogo() {
+            const yaAgregados = new Set();
+            for (const [cat, items] of Object.entries(catalogoMaestroGlobal)) {
+                items.forEach(i => {
+                    if (!yaAgregados.has(i)) {
+                        mapaCategorias[i] = cat;
+                        datalist.innerHTML += `<option value="${i}">`;
+                        yaAgregados.add(i);
+                    }
                 });
             }
-
-            renderCarrito();
-            
-            // Reset form
-            prodInput.value = '';
-            document.getElementById('cantidad').value = 1;
-            document.getElementById('observacion').value = '';
-            catBadge.style.display = 'none';
-            prodInput.focus();
-        });
-
-        window.cambiarCant = (idx, delta) => {
-            carrito[idx].cantidad += delta;
-            if (carrito[idx].cantidad < 1) carrito[idx].cantidad = 1;
-            renderCarrito();
-        };
-
-        window.removerItem = (idx) => {
-            carrito.splice(idx, 1);
-            renderCarrito();
-        };
-
-        // SUBMIT TO SUPABASE
-        async function confirmarDonacion() {
-            if (carrito.length === 0) return;
-            
-            if (!confirm(`Vas a registrar ${carrito.length} tipos de insumos. ¿Confirmar donación?`)) return;
-
-            const btn = document.getElementById('btnConfirmar');
-            btn.disabled = true;
-            
-            let exitos = 0;
-            let errores = [];
-            const itemsParaProcesar = [...carrito];
-
-            for (let i = 0; i < itemsParaProcesar.length; i++) {
-                btn.innerText = `⏳ Enviando ${i + 1}/${itemsParaProcesar.length}...`;
-                const item = itemsParaProcesar[i];
-                
-                try {
-                    await supabaseInsert('inventario', item);
-                    exitos++;
-                    // Eliminar del carrito visualmente si tuvo éxito
-                    const currentIdx = carrito.findIndex(c => c.producto === item.producto && c.obs === item.obs);
-                    if(currentIdx > -1) carrito.splice(currentIdx, 1);
-                } catch (err) {
-                    console.error("Error subiendo", item.producto, err);
-                    errores.push(item.producto);
-                }
-            }
-
-            renderCarrito();
-            cargarHistorial(); // refresh history
-
-            if (errores.length === 0) {
-                btn.innerText = `✅ ¡Donación Exitosa!`;
-                btn.style.background = 'var(--success)';
-                setTimeout(() => {
-                    btn.innerText = `✅ Confirmar Donación`;
-                    btn.style.background = '';
-                }, 3000);
-            } else {
-                alert(`Hubo un problema enviando: ${errores.join(', ')}. Los items que fallaron siguen en el carrito para reintentar.`);
-                btn.innerText = `⚠️ Reintentar fallidos`;
-                btn.disabled = false;
+            for (const [cat, items] of Object.entries(catalogoLocal)) {
+                items.forEach(i => {
+                    if (!yaAgregados.has(i)) {
+                        mapaCategorias[i] = cat;
+                        datalist.innerHTML += `<option value="${i}">`;
+                        yaAgregados.add(i);
+                    }
+                });
             }
         }
+        poblarCatalogo();
 
-        // HISTORY LOAD
-        async function cargarHistorial() {
-            const list = document.getElementById('historyList');
-            try {
-                // Get today's date prefix
-                const hoyStr = fechaHoy();
-                const data = await supabaseGet('inventario', `voluntario=eq.${encodeURIComponent(voluntarioNombre)}&fecha=like.${hoyStr}%25&order=created_at.desc`);
-                
-                list.innerHTML = '';
-                if (!data || data.length === 0) {
-                    list.innerHTML = `<li class="history-item" style="color:#64748b;justify-content:center;">No hay registros hoy.</li>`;
-                    return;
-                }
-
+        // --- SINCRONIZAR AL ABRIR ---
+        function cargarCatalogoDesdeNube() {
+            fetch(`${SUPABASE_URL}/rest/v1/catalogo?select=*`, {
+                headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+            }).then(res => res.json()).then(data => {
+                const yaAgregados = new Set(Object.keys(mapaCategorias));
                 data.forEach(item => {
-                    const timeOnly = item.fecha.split(' ')[1] || '';
-                    list.innerHTML += `
-                        <li class="history-item">
-                            <div>
-                                <strong style="display:block;">${item.producto}</strong>
-                                <span style="font-size:0.75rem;color:#64748b;">${timeOnly} | ${item.obs || '-'}</span>
-                            </div>
-                            <span class="history-qty">+${item.cantidad}</span>
-                        </li>
-                    `;
+                    if (item.producto && item.producto !== "" && !yaAgregados.has(item.producto)) {
+                        mapaCategorias[item.producto] = item.categoria;
+                        datalist.innerHTML += `<option value="${item.producto}">`;
+                        yaAgregados.add(item.producto);
+                        
+                        if (!catalogoLocal[item.categoria]) catalogoLocal[item.categoria] = [];
+                        if (!catalogoLocal[item.categoria].includes(item.producto)) catalogoLocal[item.categoria].push(item.producto);
+                    }
                 });
-            } catch (err) {
-                list.innerHTML = `<li class="history-item" style="color:var(--danger);justify-content:center;">❌ Error cargando historial</li>`;
-            }
+                localStorage.setItem('catalogoAcopio', JSON.stringify(catalogoLocal));
+            }).catch(err => console.warn("Error sincronizando catálogo:", err));
+        }
+        cargarCatalogoDesdeNube();
+
+        document.getElementById('fechaDonativo').value = new Date().toISOString().split('T')[0];
+
+        document.getElementById('producto').addEventListener('input', function() {
+            const cat = mapaCategorias[this.value];
+            document.getElementById('catBox').style.display = cat ? 'block' : 'none';
+            document.getElementById('catText').innerText = cat || '';
+        });
+
+        function renderizar() {
+            const tbody = document.getElementById('tablaSesion');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">⏳ Cargando...</td></tr>';
+
+            db.from('inventario').select('*').eq('voluntario', voluntario).order('created_at', { ascending: false })
+              .then(({ data, error }) => {
+                tbody.innerHTML = '';
+                if (error || !data || !data.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">Aún no has registrado nada esta sesión.</td></tr>'; return; }
+                data.forEach(item => {
+                    tbody.innerHTML += `<tr>
+                        <td>${item.fecha || '-'}</td>
+                        <td>${item.producto}</td>
+                        <td style="font-weight:bold;">${item.cantidad}</td>
+                        <td>${item.obs || '-'}</td>
+                        <td style="color:#16a34a; font-size:0.8rem; font-weight:600;">✅ Nube</td>
+                    </tr>`;
+                });
+              });
         }
 
-        // REALTIME SUBSCRIPTION
-        const db = crearClienteSupabase();
-        if (db) {
-            db.channel('voluntario-historial')
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inventario', filter: `voluntario=eq.${voluntarioNombre}` }, () => {
-                  cargarHistorial();
-              })
-              .subscribe();
-        }
+        document.getElementById('registroForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const prod = document.getElementById('producto').value.trim();
+            const cant = parseInt(document.getElementById('cantidad').value);
+            const obs = document.getElementById('observaciones').value.trim();
+            const cat = mapaCategorias[prod] || "Otros";
+            const fechaSel = document.getElementById('fechaDonativo').value;
+            const hora = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            const fechaCompleta = fechaSel + ' ' + hora;
 
-        // INITIAL LOAD
-        cargarHistorial();
+            if (!prod || !cant) return;
 
+            const btn = document.getElementById('btnSubmitDonativo');
+            btn.disabled = true; btn.innerText = '⏳ Enviando a la nube...';
+
+            fetch(`${SUPABASE_URL}/rest/v1/inventario`, {
+                method: "POST",
+                headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
+                body: JSON.stringify({ fecha: fechaCompleta, producto: prod, categoria: cat, cantidad: cant, obs: obs, voluntario: voluntario })
+            }).then(res => {
+                if (!res.ok) throw new Error('Error Supabase: ' + res.status);
+                invGeneral.push({ fecha: fechaCompleta, producto: prod, categoria: cat, cantidad: cant, obs });
+                localStorage.setItem('inventarioAcopio', JSON.stringify(invGeneral));
+                renderizar();
+                this.reset();
+                document.getElementById('catBox').style.display = 'none';
+                document.getElementById('fechaDonativo').value = new Date().toISOString().split('T')[0];
+                btn.innerText = '✅ ¡Registrado con éxito!'; btn.style.background = '#16a34a';
+                setTimeout(() => { btn.innerText = 'Añadir al Inventario'; btn.style.background = ''; btn.disabled = false; }, 2000);
+            }).catch(err => {
+                btn.innerText = '⚠️ Error de conexión'; btn.style.background = '#e11d48';
+                setTimeout(() => { btn.innerText = 'Intentar de nuevo'; btn.style.background = ''; btn.disabled = false; }, 3000);
+            });
+        });
+
+        db.channel('inventario-voluntario').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inventario', filter: `voluntario=eq.${voluntario}` }, () => renderizar()).subscribe();
+        renderizar();
     </script>
 </body>
 </html>
