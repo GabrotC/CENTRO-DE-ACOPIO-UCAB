@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control - Centro de Acopio</title>
-    <script src="datos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; transition: all 0.3s; }
         .navbar { background-color: #333; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -95,24 +95,44 @@
             localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
         });
 
-        // --- DATOS ---
-        let inventario = JSON.parse(localStorage.getItem('inventarioAcopio')) || [];
+        // --- CONEXIÓN A SUPABASE ---
+        const SUPABASE_URL = "https://sjvpcgjazubguzoxzwxl.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_dR9ot8lbyJHZTxupgdeJRg_WmqYWFk8";
+        const headersSupa = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" };
+
+        let inventario = [];
         const tabla = document.getElementById('tablaInventario');
         const buscador = document.getElementById('buscador');
         const btnBuscar = document.getElementById('btnBuscar');
         const filtroCategoria = document.getElementById('filtroCategoria');
 
-        // --- POBLAR FILTRO DE CATEGORÍAS DINÁMICAMENTE ---
-        const categorias = new Set();
-        inventario.forEach(item => categorias.add(item.categoria));
-        Array.from(categorias).sort().forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat;
-            opt.textContent = cat;
-            filtroCategoria.appendChild(opt);
-        });
+        function cargarInventario() {
+            tabla.innerHTML = '<tr><td colspan="4" style="text-align:center;">⏳ Cargando datos de la nube...</td></tr>';
+            
+            fetch(`${SUPABASE_URL}/rest/v1/inventario?select=*`, { headers: headersSupa })
+            .then(res => res.json())
+            .then(data => {
+                inventario = data;
+                
+                // Poblar categorías en el filtro
+                const categorias = new Set();
+                inventario.forEach(item => { if(item.categoria) categorias.add(item.categoria); });
+                const catActual = filtroCategoria.value;
+                filtroCategoria.innerHTML = '<option value="Todos">Todas las categorías</option>';
+                Array.from(categorias).sort().forEach(cat => {
+                    filtroCategoria.innerHTML += `<option value="${cat}">${cat}</option>`;
+                });
+                filtroCategoria.value = Array.from(categorias).includes(catActual) ? catActual : 'Todos';
 
-        // --- GENERAR CARDS DEL DASHBOARD DINÁMICAMENTE ---
+                renderDashboard();
+                actualizarTabla();
+            })
+            .catch(err => {
+                tabla.innerHTML = `<tr><td colspan="4" style="color:#d9534f; text-align:center;">❌ Error cargando datos: ${err}</td></tr>`;
+            });
+        }
+
+        // --- GENERAR CARDS DEL DASHBOARD ---
         function renderDashboard() {
             const dash = document.getElementById('dashboardCards');
             const resumenCat = {};
@@ -125,10 +145,8 @@
                 resumenCat[cat] = (resumenCat[cat] || 0) + cant;
             });
 
-            // Card de total
             dash.innerHTML = `<div class="card" style="border-top-color: #0275d8;"><h3>Total Unidades</h3><p>${total}</p></div>`;
 
-            // Cards por categoría
             const colores = ['#f0ad4e','#d9534f','#8a6d3b','#ffb6c1','#5bc0de','#5cb85c','#777','#4f46e5','#e11d48','#16a34a'];
             let i = 0;
             for (const [cat, cant] of Object.entries(resumenCat).sort()) {
@@ -144,8 +162,9 @@
             const textoBusqueda = buscador.value.toLowerCase();
             const catFiltro = filtroCategoria.value;
 
-            inventario.forEach(function(item, index) {
-                const coincideTexto = item.producto.toLowerCase().includes(textoBusqueda);
+            inventario.forEach(function(item) {
+                const nombreProd = (item.producto || '').toLowerCase();
+                const coincideTexto = nombreProd.includes(textoBusqueda);
                 const coincideCategoria = catFiltro === 'Todos' || item.categoria === catFiltro;
 
                 if (coincideTexto && coincideCategoria) {
@@ -154,30 +173,29 @@
                         <td>${item.producto}</td>
                         <td>${item.categoria}</td>
                         <td>${item.cantidad}</td>
-                        <td><button class="btn-eliminar" data-index="${index}">Borrar</button></td>
+                        <td><button class="btn-eliminar" onclick="eliminarItem('${item.id}', '${item.producto.replace(/'/g, "\\'")}')">Borrar</button></td>
                     `;
                     tabla.appendChild(nuevaFila);
                 }
             });
-
-            document.querySelectorAll('.btn-eliminar').forEach(boton => {
-                boton.addEventListener('click', function() {
-                    if (!confirm('¿Eliminar este registro?')) return;
-                    const indice = this.getAttribute('data-index');
-                    inventario.splice(indice, 1);
-                    localStorage.setItem('inventarioAcopio', JSON.stringify(inventario));
-                    actualizarTabla();
-                    renderDashboard();
-                });
-            });
         }
+
+        // --- ELIMINAR CON CONFIRMACIÓN ---
+        window.eliminarItem = function(id, producto) {
+            if (!confirm(`⚠️ ¿Estás seguro de que deseas eliminar el registro de "${producto}" de la nube?`)) return;
+            
+            fetch(`${SUPABASE_URL}/rest/v1/inventario?id=eq.${id}`, {
+                method: 'DELETE',
+                headers: headersSupa
+            }).then(() => cargarInventario()).catch(err => alert("Error al eliminar: " + err));
+        };
 
         buscador.addEventListener('input', actualizarTabla);
         btnBuscar.addEventListener('click', actualizarTabla);
         filtroCategoria.addEventListener('change', actualizarTabla);
 
-        renderDashboard();
-        actualizarTabla();
+        // Iniciar carga
+        cargarInventario();
     </script>
 </body>
 </html>
