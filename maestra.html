@@ -3,477 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administrador — Centro de Acopio SOS UCAB</title>
-    <meta name="description" content="Panel de administración para gestionar categorías y productos del catálogo del Centro de Acopio SOS UCAB.">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="config.js"></script>
+    <title>Hoja Maestra - Centro de Acopio</title>
     <script src="datos.js"></script>
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-light: #818cf8;
-            --bg: #f0f2f5;
-            --text: #1e293b;
-            --card-bg: #ffffff;
-            --navbar-bg: #1e293b;
-            --border: #e2e8f0;
-            --success: #16a34a;
-            --danger: #e11d48;
-            --warning: #f59e0b;
-            --admin-accent: #8b5cf6;
-            --admin-accent-light: #c4b5fd;
-            --muted: #64748b;
-            --table-row: #f8fafc;
-        }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; transition: all 0.3s; }
+        .navbar { background-color: #333; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h2 { margin: 0; font-size: 1.2rem; }
+        .nav-links { display: flex; gap: 10px; align-items: center; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; }
+        .btn-panel { background-color: #0275d8; }
+        .btn-panel:hover { background-color: #025aa5; }
+        .btn-salir { background-color: #d9534f; }
+        .btn-salir:hover { background-color: #c9302c; }
+        .btn-theme { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: white; }
+        .container { max-width: 1000px; margin: 30px auto; background-color: white; padding: 20px 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: all 0.3s; }
+        h2 { color: #333; border-bottom: 2px solid #8a6d3b; padding-bottom: 10px; margin-bottom: 20px; }
+        .form-group { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .form-group select, .form-group input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; flex: 1; min-width: 200px; }
+        button { padding: 10px 20px; background-color: #8a6d3b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #6c542d; }
+        button.danger { background-color: #d9534f; }
+        button.danger:hover { background-color: #c9302c; }
+        .busqueda { display: flex; gap: 10px; margin-bottom: 20px; }
+        .busqueda input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .catalogo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .categoria-box { background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; transition: all 0.3s; }
+        .categoria-box h3 { margin-top: 0; color: #0275d8; border-bottom: 1px solid #ccc; padding-bottom: 5px; font-size: 1rem; }
+        .categoria-box ul { list-style-type: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; }
+        .categoria-box li { padding: 4px 8px; border-bottom: 1px dashed #eee; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+        .categoria-box li:hover { background-color: #f1f1f1; }
+        .btn-remove-prod { background: #d9534f; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; line-height: 20px; text-align: center; padding: 0; }
+        .btn-remove-prod:hover { background: #c9302c; }
+        .estadisticas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: #f8f9fa; padding: 12px; border-radius: 8px; text-align: center; border-top: 3px solid #8a6d3b; }
+        .stat-card h4 { margin: 0; font-size: 11px; color: #666; text-transform: uppercase; }
+        .stat-card p { margin: 5px 0 0; font-size: 22px; font-weight: bold; color: #333; }
 
-        body.dark-mode {
-            --bg: #0f172a;
-            --text: #f8fafc;
-            --card-bg: #1e293b;
-            --navbar-bg: #020617;
-            --border: #334155;
-            --muted: #94a3b8;
-            --table-row: #0f172a;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            transition: background-color 0.3s, color 0.3s;
-            min-height: 100vh;
-        }
-
-        /* ---- NAVBAR ---- */
-        .navbar {
-            background: var(--navbar-bg);
-            color: white;
-            padding: 14px 28px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-        }
-        .navbar h1 { font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .nav-links { display: flex; gap: 8px; align-items: center; }
-        .nav-btn {
-            color: white;
-            text-decoration: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
-            font-size: 0.85rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-        .nav-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); }
-        .nav-btn.danger { background: var(--danger); }
-        .nav-btn.danger:hover { background: #be123c; }
-
-        /* ---- CONTAINER ---- */
-        .container {
-            max-width: 1100px;
-            margin: 24px auto;
-            padding: 0 20px;
-        }
-
-        /* ---- STATS ---- */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-        .stat-card {
-            background: var(--card-bg);
-            border-radius: 14px;
-            padding: 18px 20px;
-            border-top: 3px solid var(--admin-accent);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            transition: all 0.3s;
-        }
-        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
-        .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 600; }
-        .stat-value { font-size: 1.8rem; font-weight: 700; margin-top: 4px; background: linear-gradient(135deg, var(--admin-accent), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-
-        /* ---- CARDS ---- */
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            margin-bottom: 24px;
-            transition: all 0.3s;
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--border);
-        }
-
-        /* ---- NOTIFICATION BANNER ---- */
-        .notif-banner {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            border: 1px solid #f59e0b;
-            border-radius: 12px;
-            padding: 14px 20px;
-            margin-bottom: 24px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            animation: slideDown 0.4s ease;
-        }
-        .notif-banner.show { display: flex; }
-        .notif-banner .icon { font-size: 1.5rem; }
-        .notif-banner .text { flex: 1; font-size: 0.9rem; color: #92400e; font-weight: 500; }
-        .notif-banner .count { background: #f59e0b; color: white; font-weight: 700; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; }
-        body.dark-mode .notif-banner { background: linear-gradient(135deg, #451a03, #78350f); border-color: #92400e; }
-        body.dark-mode .notif-banner .text { color: #fde68a; }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ---- FORM ---- */
-        .form-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-        }
-        .form-group { flex: 1; min-width: 200px; }
-        .form-group label {
-            display: block;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--muted);
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-        .form-group select,
-        .form-group input {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-family: inherit;
-            background: var(--card-bg);
-            color: var(--text);
-            transition: all 0.2s;
-        }
-        .form-group select:focus,
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--admin-accent);
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
-        }
-        .btn-submit {
-            padding: 10px 24px;
-            background: linear-gradient(135deg, var(--admin-accent), var(--primary));
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
-            white-space: nowrap;
-        }
-        .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
-
-        /* ---- SEARCH ---- */
-        .search-box {
-            position: relative;
-            margin-bottom: 20px;
-        }
-        .search-box input {
-            width: 100%;
-            padding: 12px 16px 12px 42px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-family: inherit;
-            background: var(--card-bg);
-            color: var(--text);
-            transition: all 0.2s;
-        }
-        .search-box input:focus { outline: none; border-color: var(--admin-accent); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15); }
-        .search-box::before {
-            content: '🔍';
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1rem;
-        }
-
-        /* ---- CATALOG GRID ---- */
-        .catalogo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 16px;
-        }
-        .categoria-box {
-            background: var(--table-row);
-            border-radius: 12px;
-            padding: 16px;
-            border: 1px solid var(--border);
-            transition: all 0.3s;
-        }
-        .categoria-box:hover { border-color: var(--admin-accent-light); }
-        .categoria-box h3 {
-            font-size: 0.9rem;
-            color: var(--admin-accent);
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .cat-count {
-            background: var(--admin-accent);
-            color: white;
-            font-size: 0.65rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
-        .categoria-box ul {
-            list-style: none;
-            max-height: 220px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-        }
-        .categoria-box li {
-            padding: 5px 8px;
-            font-size: 0.8rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 6px;
-            transition: background 0.15s;
-        }
-        .categoria-box li:hover { background: var(--border); }
-        .btn-remove {
-            background: transparent;
-            color: var(--danger);
-            border: 1px solid var(--danger);
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            opacity: 0;
-            flex-shrink: 0;
-        }
-        .categoria-box li:hover .btn-remove { opacity: 1; }
-        .btn-remove:hover { background: var(--danger); color: white; }
-
-        /* ---- SCROLLBAR ---- */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-        /* ---- RESPONSIVE ---- */
-        @media (max-width: 640px) {
-            .navbar { padding: 12px 16px; flex-direction: column; gap: 10px; }
-            .nav-links { flex-wrap: wrap; justify-content: center; }
-            .form-row { flex-direction: column; }
-            .form-group { min-width: 100%; }
-            .catalogo-grid { grid-template-columns: 1fr; }
-        }
-
-        /* ---- NEW CATEGORY FORM ---- */
-        .new-cat-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px dashed var(--border);
-        }
-        .new-cat-row input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.85rem;
-            background: var(--card-bg);
-            color: var(--text);
-            font-family: inherit;
-        }
-        .btn-new-cat {
-            padding: 8px 16px;
-            background: var(--success);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            cursor: pointer;
-            font-family: inherit;
-            white-space: nowrap;
-        }
-        .btn-new-cat:hover { background: #15803d; }
-
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            padding: 14px 24px;
-            border-radius: 12px;
-            color: white;
-            font-weight: 600;
-            font-size: 0.9rem;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 100;
-        }
-        .toast.show { transform: translateY(0); opacity: 1; }
-        .toast.success { background: var(--success); }
-        .toast.error { background: var(--danger); }
-        .toast.warning { background: var(--warning); }
+        body.dark-mode { background-color: #0f172a; color: #f8fafc; }
+        body.dark-mode .container { background-color: #1e293b; color: #f8fafc; }
+        body.dark-mode .categoria-box { background-color: #0f172a; border-color: #475569; }
+        body.dark-mode .categoria-box li:hover { background-color: #1e293b; }
+        body.dark-mode .stat-card { background-color: #0f172a; }
+        body.dark-mode .stat-card p { color: #f8fafc; }
+        body.dark-mode h2 { color: #f8fafc; }
+        body.dark-mode .navbar { background-color: #020617; }
+        body.dark-mode .busqueda input { background-color: #0f172a; color: #f8fafc; border-color: #475569; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <h1>⚙️ Panel de Administración</h1>
+        <h2>⚙️ Hoja Maestra de Insumos</h2>
         <div class="nav-links">
-            <button id="themeToggle" class="nav-btn" title="Cambiar tema">🌙</button>
-            <a href="inventario_general.html" class="nav-btn">📊 Inventario</a>
-            <a href="inventario_salidas.html" class="nav-btn">📦 Inv. Neto</a>
-            <a href="index.html" class="nav-btn danger">Cerrar Sesión</a>
+            <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
+            <a href="panel.html" class="btn-panel">Ir al Panel General</a>
+            <a href="index.html" class="btn-salir">Cerrar Sesión</a>
         </div>
     </div>
 
-    <!-- Notificación de productos sin categorizar -->
     <div class="container">
-        <div id="notifBanner" class="notif-banner">
-            <span class="icon">⚠️</span>
-            <span class="text">Hay productos registrados en la categoría <strong>"Otros"</strong> que necesitan ser recategorizados.</span>
-            <span id="notifCount" class="count">0</span>
-        </div>
-
         <!-- Estadísticas -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Categorías</div>
-                <div class="stat-value" id="totalCategorias">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Productos en Catálogo</div>
-                <div class="stat-value" id="totalProductos">0</div>
-            </div>
-            <div class="stat-card" style="border-top-color: var(--warning);">
-                <div class="stat-label">Sin Categorizar</div>
-                <div class="stat-value" id="totalOtros" style="background: linear-gradient(135deg, var(--warning), var(--danger)); -webkit-background-clip: text; background-clip: text;">0</div>
-            </div>
+        <div class="estadisticas">
+            <div class="stat-card"><h4>Categorías</h4><p id="totalCategorias">0</p></div>
+            <div class="stat-card"><h4>Productos Totales</h4><p id="totalProductos">0</p></div>
         </div>
 
-        <!-- Añadir producto -->
-        <div class="card">
-            <h2>➕ Añadir Producto al Catálogo</h2>
-            <form id="formAgregar">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Categoría</label>
-                        <select id="selectCategoria" required>
-                            <option value="">Selecciona una categoría...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Nombre del Producto</label>
-                        <input type="text" id="nuevoProducto" placeholder="Ej. Acetaminofén 500mg" required>
-                    </div>
-                    <button type="submit" class="btn-submit">Añadir</button>
-                </div>
-                <!-- Crear nueva categoría -->
-                <div class="new-cat-row">
-                    <input type="text" id="nuevaCategoria" placeholder="¿No encuentras la categoría? Escribe una nueva...">
-                    <button type="button" class="btn-new-cat" onclick="crearCategoria()">+ Crear Categoría</button>
-                </div>
-            </form>
+        <h2>Añadir Nuevo Producto al Catálogo</h2>
+        <form id="formMaestra" class="form-group">
+            <select id="selectCategoria" required>
+                <option value="">1. Selecciona la Categoría...</option>
+            </select>
+            <input type="text" id="nuevoProducto" placeholder="Escribe el nombre del nuevo producto..." required>
+            <button type="submit">Añadir</button>
+        </form>
+
+        <h2>Buscar en el Catálogo</h2>
+        <div class="busqueda">
+            <input type="text" id="buscadorCatalogo" placeholder="🔍 Buscar producto en todo el catálogo...">
         </div>
 
-        <!-- Buscar -->
-        <div class="card">
-            <h2>🔍 Explorar Catálogo</h2>
-            <div class="search-box">
-                <input type="text" id="buscadorCatalogo" placeholder="Buscar producto en todo el catálogo...">
-            </div>
-            <div class="catalogo-grid" id="contenedorCatalogo"></div>
-        </div>
+        <h2>Catálogo Actual</h2>
+        <div class="catalogo-grid" id="contenedorCatalogo"></div>
     </div>
-
-    <!-- Toast -->
-    <div id="toast" class="toast"></div>
 
     <script>
         // ============================================================
-        // ACCESO + TEMA
+        // SUPABASE — CONEXIÓN
         // ============================================================
-        verificarAcceso('admin');
-        initTheme('themeToggle');
+        const SUPABASE_URL = "https://sjvpcgjazubguzoxzwxl.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_dR9ot8lbyJHZTxupgdeJRg_WmqYWFk8";
+
+        function sincronizarCatalogoNube(tipo, categoria, producto) {
+            if (tipo === "CATALOGO_ADD") {
+                fetch(`${SUPABASE_URL}/rest/v1/catalogo`, {
+                    method: "POST",
+                    headers: {
+                        "apikey": SUPABASE_KEY,
+                        "Authorization": `Bearer ${SUPABASE_KEY}`,
+                        "Content-Type": "application/json",
+                        "Prefer": "return=minimal"
+                    },
+                    body: JSON.stringify({ categoria, producto })
+                }).catch(err => console.warn('Supabase no disponible (add):', err));
+
+            } else if (tipo === "CATALOGO_DEL") {
+                fetch(`${SUPABASE_URL}/rest/v1/catalogo?categoria=eq.${encodeURIComponent(categoria)}&producto=eq.${encodeURIComponent(producto)}`, {
+                    method: "DELETE",
+                    headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+                }).catch(err => console.warn('Supabase no disponible (del):', err));
+            }
+        }
 
         // ============================================================
-        // CATÁLOGO — localStorage como cache, Supabase como verdad
+        // VERIFICAR ACCESO
+        // ============================================================
+        if (sessionStorage.getItem('userRole') !== 'admin') {
+            alert('Acceso restringido. Debes iniciar sesión como administrador.');
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        // MODO OSCURO
+        // ============================================================
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerText = '☀️';
+        }
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            themeToggle.innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        });
+
+        // ============================================================
+        // CATÁLOGO: inicialización
         // ============================================================
         let catalogoMaestro = JSON.parse(localStorage.getItem('catalogoAcopio'));
+
         if (!catalogoMaestro) {
             catalogoMaestro = JSON.parse(JSON.stringify(catalogoMaestroGlobal));
             localStorage.setItem('catalogoAcopio', JSON.stringify(catalogoMaestro));
         }
 
         const contenedor = document.getElementById('contenedorCatalogo');
+        const form = document.getElementById('formMaestra');
         const selectCat = document.getElementById('selectCategoria');
 
-        // ============================================================
-        // TOAST NOTIFICATIONS
-        // ============================================================
-        function showToast(msg, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.className = `toast ${type}`;
-            toast.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        // ============================================================
-        // POBLAR SELECT DE CATEGORÍAS
-        // ============================================================
-        function poblarSelect() {
-            selectCat.innerHTML = '<option value="">Selecciona una categoría...</option>';
-            Object.keys(catalogoMaestro).sort().forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                selectCat.appendChild(opt);
-            });
-        }
-        poblarSelect();
+        Object.keys(catalogoMaestro).sort().forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            selectCat.appendChild(opt);
+        });
 
         // ============================================================
         // ESTADÍSTICAS
@@ -484,19 +166,6 @@
             Object.values(catalogoMaestro).forEach(arr => totalProd += arr.length);
             document.getElementById('totalCategorias').innerText = totalCat;
             document.getElementById('totalProductos').innerText = totalProd;
-
-            // Contar items en "Otros"
-            const otrosCount = (catalogoMaestro['Otros'] || []).length;
-            document.getElementById('totalOtros').innerText = otrosCount;
-
-            // Mostrar/ocultar banner de notificación
-            const banner = document.getElementById('notifBanner');
-            if (otrosCount > 0) {
-                banner.classList.add('show');
-                document.getElementById('notifCount').innerText = otrosCount;
-            } else {
-                banner.classList.remove('show');
-            }
         }
 
         // ============================================================
@@ -506,9 +175,7 @@
             contenedor.innerHTML = '';
             const texto = (filtro || '').toLowerCase();
 
-            const entries = Object.entries(catalogoMaestro).sort((a, b) => a[0].localeCompare(b[0]));
-
-            for (const [categoria, productos] of entries) {
+            for (const [categoria, productos] of Object.entries(catalogoMaestro)) {
                 let productosFiltrados = productos;
                 if (texto) {
                     productosFiltrados = productos.filter(p => p.toLowerCase().includes(texto));
@@ -517,63 +184,33 @@
 
                 const caja = document.createElement('div');
                 caja.className = 'categoria-box';
-
-                // Highlight "Otros" category
-                if (categoria === 'Otros') {
-                    caja.style.borderColor = 'var(--warning)';
-                }
-
-                let html = `<h3><span>${categoria}</span><span class="cat-count">${productosFiltrados.length}</span></h3><ul>`;
+                
+                let listaHTML = `<h3>${categoria} <span style="font-weight:normal;font-size:11px;color:#999;">(${productosFiltrados.length})</span></h3><ul>`;
                 productosFiltrados.forEach(prod => {
-                    const escapedCat = categoria.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                    const escapedProd = prod.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                    html += `<li>
+                    listaHTML += `<li>
                         <span>${prod}</span>
-                        <button class="btn-remove" onclick="eliminarProducto('${escapedCat}', '${escapedProd}')" title="Eliminar">✕</button>
+                        <button class="btn-remove-prod" onclick="eliminarProducto('${categoria.replace(/'/g, "\\'")}', '${prod.replace(/'/g, "\\'")}')" title="Eliminar">×</button>
                     </li>`;
                 });
-                html += '</ul>';
-
-                caja.innerHTML = html;
+                listaHTML += `</ul>`;
+                
+                caja.innerHTML = listaHTML;
                 contenedor.appendChild(caja);
             }
-
-            if (contenedor.children.length === 0) {
-                contenedor.innerHTML = '<p style="text-align:center; color:var(--muted); grid-column: 1/-1; padding: 40px;">No se encontraron productos con ese nombre.</p>';
-            }
         }
 
         // ============================================================
-        // SINCRONIZAR CON SUPABASE (fire and forget)
+        // AÑADIR PRODUCTO Y ACTUALIZAR HISTORIAL AUTOMÁTICAMENTE
         // ============================================================
-        function sincronizarNube(tipo, categoria, producto) {
-            if (tipo === 'add') {
-                supabaseInsert('catalogo', { categoria, producto }).catch(err =>
-                    console.warn('Supabase sync (add):', err)
-                );
-            } else if (tipo === 'del') {
-                supabaseDelete('catalogo', { categoria, producto }).catch(err =>
-                    console.warn('Supabase sync (del):', err)
-                );
-            }
-        }
-
-        // ============================================================
-        // AÑADIR PRODUCTO
-        // ============================================================
-        document.getElementById('formAgregar').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const categoria = selectCat.value;
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const categoria = document.getElementById('selectCategoria').value;
             const nuevoProd = document.getElementById('nuevoProducto').value.trim();
 
             if (!categoria || !nuevoProd) return;
 
-            if (!catalogoMaestro[categoria]) {
-                catalogoMaestro[categoria] = [];
-            }
-
             if (catalogoMaestro[categoria].includes(nuevoProd)) {
-                showToast('Ese producto ya existe en esta categoría.', 'warning');
+                alert('Ese producto ya existe en esta categoría.');
                 return;
             }
 
@@ -581,38 +218,26 @@
             catalogoMaestro[categoria].sort();
             localStorage.setItem('catalogoAcopio', JSON.stringify(catalogoMaestro));
 
-            sincronizarNube('add', categoria, nuevoProd);
+            sincronizarCatalogoNube("CATALOGO_ADD", categoria, nuevoProd);
+
+            // ✨ ACTUALIZACIÓN RETROACTIVA EN LA BASE DE DATOS ✨
+            fetch(`${SUPABASE_URL}/rest/v1/inventario?producto=eq.${encodeURIComponent(nuevoProd)}`, {
+                method: "PATCH",
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type": "application/json",
+                    "Prefer": "return=minimal"
+                },
+                body: JSON.stringify({ categoria: categoria })
+            }).then(() => console.log(`Registros pasados de '${nuevoProd}' actualizados a '${categoria}'`))
+              .catch(err => console.error("Error actualizando registros retroactivos:", err));
 
             renderizarCatalogo(document.getElementById('buscadorCatalogo').value);
             actualizarEstadisticas();
             document.getElementById('nuevoProducto').value = '';
-            showToast(`"${nuevoProd}" añadido a ${categoria}`);
+            alert(`"${nuevoProd}" añadido a ${categoria}.\n\n✅ Todos los registros anteriores que decían "Otros" han sido actualizados a su nueva categoría en la base de datos.`);
         });
-
-        // ============================================================
-        // CREAR NUEVA CATEGORÍA
-        // ============================================================
-        function crearCategoria() {
-            const nombre = document.getElementById('nuevaCategoria').value.trim();
-            if (!nombre) return showToast('Escribe un nombre para la categoría.', 'warning');
-
-            if (catalogoMaestro[nombre]) {
-                return showToast('Esa categoría ya existe.', 'warning');
-            }
-
-            catalogoMaestro[nombre] = [];
-            localStorage.setItem('catalogoAcopio', JSON.stringify(catalogoMaestro));
-
-            poblarSelect();
-            renderizarCatalogo(document.getElementById('buscadorCatalogo').value);
-            actualizarEstadisticas();
-
-            // Auto-seleccionar la nueva categoría
-            selectCat.value = nombre;
-
-            document.getElementById('nuevaCategoria').value = '';
-            showToast(`Categoría "${nombre}" creada con éxito`);
-        }
 
         // ============================================================
         // ELIMINAR PRODUCTO
@@ -620,56 +245,24 @@
         window.eliminarProducto = function(categoria, producto) {
             if (!confirm(`¿Eliminar "${producto}" de ${categoria}?`)) return;
 
-            const idx = catalogoMaestro[categoria]?.indexOf(producto);
+            const idx = catalogoMaestro[categoria].indexOf(producto);
             if (idx > -1) {
                 catalogoMaestro[categoria].splice(idx, 1);
-
-                // Si la categoría queda vacía (y no es una default), permitir eliminarla
-                if (catalogoMaestro[categoria].length === 0) {
-                    if (confirm(`La categoría "${categoria}" quedó vacía. ¿Eliminarla también?`)) {
-                        delete catalogoMaestro[categoria];
-                        poblarSelect();
-                    }
-                }
-
                 localStorage.setItem('catalogoAcopio', JSON.stringify(catalogoMaestro));
-                sincronizarNube('del', categoria, producto);
+
+                sincronizarCatalogoNube("CATALOGO_DEL", categoria, producto);
 
                 renderizarCatalogo(document.getElementById('buscadorCatalogo').value);
                 actualizarEstadisticas();
-                showToast(`"${producto}" eliminado`, 'error');
             }
         };
 
-        // ============================================================
-        // BÚSQUEDA EN VIVO
-        // ============================================================
         document.getElementById('buscadorCatalogo').addEventListener('input', function() {
             renderizarCatalogo(this.value);
         });
 
-        // ============================================================
-        // CHEQUEAR ITEMS EN "OTROS" (notificación admin)
-        // ============================================================
-        async function checkOtrosEnSupabase() {
-            try {
-                const items = await supabaseGet('inventario', 'select=producto,categoria&categoria=eq.Otros');
-                if (items && items.length > 0) {
-                    const banner = document.getElementById('notifBanner');
-                    banner.classList.add('show');
-                    document.getElementById('notifCount').innerText = items.length;
-                }
-            } catch (err) {
-                console.warn('No se pudo verificar items en Otros:', err);
-            }
-        }
-
-        // ============================================================
-        // INICIALIZAR
-        // ============================================================
         renderizarCatalogo();
         actualizarEstadisticas();
-        checkOtrosEnSupabase();
     </script>
 </body>
 </html>
