@@ -16,27 +16,30 @@
             --navbar: #1e293b;
         }
         
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; transition: background-color 0.3s, color 0.3s; }
         
         /* Navbar */
-        .navbar { background-color: var(--navbar); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar { background-color: var(--navbar); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.3s; }
         .nav-links { display: flex; gap: 10px; align-items: center; }
         .navbar a { color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; background: rgba(255,255,255,0.1); font-size: 0.9rem; }
+        .btn-theme { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: white; padding: 5px 10px; border-radius: 8px; }
+        .btn-theme:hover { background: rgba(255,255,255,0.1); }
         
         /* Layout Principal */
         .main-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; padding: 20px; max-width: 1400px; margin: 0 auto; align-items: start; }
-        .card { background: var(--card-bg); padding: 24px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card { background: var(--card-bg); padding: 24px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background-color 0.3s, box-shadow 0.3s; }
         
         /* Títulos */
-        .titulo-con-badge { display: flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 700; margin-top: 0; margin-bottom: 20px; }
+        .titulo-con-badge { display: flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 700; margin-top: 0; margin-bottom: 20px; color: var(--text); }
         .badge { background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
-        h2 { font-size: 1.1rem; font-weight: 700; margin-top: 0; color: #374151; }
+        h2 { font-size: 1.1rem; font-weight: 700; margin-top: 0; color: var(--text); }
 
         /* Tabla del Carrito */
         table { width: 100%; border-collapse: collapse; }
         th { color: #6b7280; text-transform: uppercase; font-size: 0.7rem; padding: 10px 0; text-align: left; border-bottom: 1px solid var(--border); }
         td { padding: 12px 0; font-size: 0.85rem; border-bottom: 1px solid var(--border); color: #4b5563; }
-        .td-prod { font-weight: 600; color: #111827; }
+        .td-prod { font-weight: 600; color: var(--text); }
+        .td-fecha { font-size: 0.7rem; color: #9ca3af; font-weight: normal; display: block; margin-top: 3px; }
         
         /* Controles de Cantidad en Tabla */
         .cant-control { display: flex; align-items: center; gap: 8px; }
@@ -52,9 +55,11 @@
 
         /* Formulario Agregar Insumo */
         label { font-size: 0.7rem; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; display: block; margin-top: 15px; }
-        input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; background: #f9fafb; }
-        input:focus { outline: none; border-color: var(--primary); background: white; }
+        input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; background: #f9fafb; color: #1f2937; transition: all 0.3s; }
+        input:focus { outline: none; border-color: var(--primary); background: var(--card-bg); }
         .cat-texto { font-size: 0.75rem; color: var(--primary); margin-top: 5px; display: block; font-weight: 600; min-height: 15px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
         .btn-add { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 20px; font-size: 0.95rem; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .btn-add:hover { background: #4338ca; }
@@ -63,10 +68,22 @@
         .lista-confirmadas { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; max-height: 400px; overflow-y: auto; }
         .item-confirmado { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px dashed var(--border); }
         .item-info { display: flex; flex-direction: column; gap: 2px; }
-        .item-nombre { font-size: 0.85rem; font-weight: 600; color: #374151; }
+        .item-nombre { font-size: 0.85rem; font-weight: 600; color: var(--text); }
         .item-meta { font-size: 0.7rem; color: #9ca3af; }
         .item-qty { font-size: 1rem; font-weight: 700; color: #10b981; }
 
+        /* MODO OSCURO */
+        body.dark-mode { 
+            --bg: #0f172a; 
+            --text: #f8fafc; 
+            --card-bg: #1e293b; 
+            --border: #334155;
+            --navbar: #020617;
+        }
+        body.dark-mode td, body.dark-mode h2, body.dark-mode .titulo-con-badge { color: #f8fafc; }
+        body.dark-mode input { background: #0f172a; color: #f8fafc; border-color: #475569; }
+        body.dark-mode input:focus { background: #1e293b; }
+        body.dark-mode .cant-btn { color: #cbd5e1; }
     </style>
 </head>
 <body>
@@ -74,6 +91,7 @@
     <div class="navbar">
         <div style="font-weight: 600; font-size: 1.1rem;">Portal de <span id="nombreVoluntarioTexto"></span></div>
         <div class="nav-links">
+            <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
             <a href="inventario_general.html">📊 Inventario</a>
             <a href="index.html" style="background: #ef4444;">Salir</a>
         </div>
@@ -81,7 +99,6 @@
 
     <div class="main-layout">
         
-        <!-- COLUMNA IZQUIERDA: CARRITO -->
         <div class="card" style="min-height: 70vh;">
             <h1 class="titulo-con-badge">🛒 Carrito de Donación <span class="badge" id="cartCount">0</span></h1>
             
@@ -96,17 +113,14 @@
                     </tr>
                 </thead>
                 <tbody id="tablaCarrito">
-                    <!-- Aquí se inyectan los items del carrito -->
-                </tbody>
+                    </tbody>
             </table>
             
             <button id="btnConfirmar" class="btn-confirmar" style="display: none;">Confirmar Donación</button>
             <div style="clear: both;"></div>
         </div>
 
-        <!-- COLUMNA DERECHA: FORMULARIO E HISTORIAL -->
         <div>
-            <!-- Formulario -->
             <div class="card">
                 <h2>➕ Agregar Insumo</h2>
                 <form id="formAgregar">
@@ -115,8 +129,16 @@
                     <datalist id="listaInsumos"></datalist>
                     <span class="cat-texto" id="catText"></span>
                     
-                    <label>Cantidad</label>
-                    <input type="number" id="cantidad" placeholder="0" required min="1">
+                    <div class="grid-2">
+                        <div>
+                            <label>Cantidad</label>
+                            <input type="number" id="cantidad" placeholder="0" required min="1">
+                        </div>
+                        <div>
+                            <label>Fecha</label>
+                            <input type="date" id="fechaDonativo" required>
+                        </div>
+                    </div>
                     
                     <label>Presentación / Observaciones</label>
                     <input type="text" id="observaciones" placeholder="Ej. 500mg, Caja de 12, etc.">
@@ -125,18 +147,35 @@
                 </form>
             </div>
 
-            <!-- Historial -->
             <div class="card" style="margin-top: 24px;">
-                <h2 style="display:flex; align-items:center; gap:8px;">🕰️ Donaciones confirmadas hoy</h2>
+                <h2 style="display:flex; align-items:center; gap:8px;">🕰️ Donaciones confirmadas</h2>
                 <div class="lista-confirmadas" id="listaConfirmadas">
-                    <!-- Aquí se inyectan las confirmadas desde Supabase -->
-                </div>
+                    </div>
             </div>
         </div>
 
     </div>
 
     <script>
+        // ============================================================
+        // MODO OSCURO
+        // ============================================================
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerText = '☀️';
+        }
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerText = '☀️';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerText = '🌙';
+            }
+        });
+
         // ============================================================
         // CONEXIÓN A SUPABASE
         // ============================================================
@@ -146,7 +185,7 @@
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ============================================================
-        // VALIDACIÓN DE USUARIO
+        // VALIDACIÓN DE USUARIO Y FECHA INICIAL
         // ============================================================
         if (sessionStorage.getItem('userRole') !== 'voluntario') {
             alert('Debes iniciar sesión como voluntario primero.');
@@ -154,6 +193,9 @@
         }
         const voluntario = sessionStorage.getItem('voluntarioActivo') || "Voluntario";
         document.getElementById('nombreVoluntarioTexto').innerText = voluntario;
+        
+        // Poner la fecha de hoy por defecto al cargar
+        document.getElementById('fechaDonativo').value = new Date().toISOString().split('T')[0];
 
         // ============================================================
         // LÓGICA DEL CARRITO (LOCAL)
@@ -168,7 +210,7 @@
             tbody.innerHTML = '';
             
             if (carrito.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px 0; color:#9ca3af;">Tu carrito está vacío. Agrega insumos desde el panel derecho.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan=\"5\" style=\"text-align:center; padding: 40px 0; color:#9ca3af;\">Tu carrito está vacío. Agrega insumos desde el panel derecho.</td></tr>';
                 btnConfirmar.style.display = 'none';
                 return;
             }
@@ -178,17 +220,20 @@
             carrito.forEach((item, index) => {
                 tbody.innerHTML += `
                     <tr>
-                        <td class="td-prod">${item.producto}</td>
-                        <td style="font-size: 0.75rem;">${item.categoria}</td>
+                        <td class=\"td-prod\">
+                            ${item.producto}
+                            <span class=\"td-fecha\">📅 ${item.fecha}</span>
+                        </td>
+                        <td style=\"font-size: 0.75rem;\">${item.categoria}</td>
                         <td>
-                            <div class="cant-control">
-                                <button class="cant-btn" onclick="modificarCant(${index}, -1)">-</button>
+                            <div class=\"cant-control\">
+                                <button class=\"cant-btn\" type=\"button\" onclick=\"modificarCant(${index}, -1)\">-</button>
                                 <span>${item.cantidad}</span>
-                                <button class="cant-btn" onclick="modificarCant(${index}, 1)">+</button>
+                                <button class=\"cant-btn\" type=\"button\" onclick=\"modificarCant(${index}, 1)\">+</button>
                             </div>
                         </td>
                         <td>${item.obs || '-'}</td>
-                        <td><button class="btn-trash" onclick="eliminarItem(${index})">🗑️</button></td>
+                        <td><button class=\"btn-trash\" type=\"button\" onclick=\"eliminarItem(${index})\">🗑️</button></td>
                     </tr>
                 `;
             });
@@ -213,23 +258,20 @@
         const mapaCategorias = {};
         const datalist = document.getElementById('listaInsumos');
 
-        // Descargar catálogo de la nube para mantener autocompletado actualizado
         function cargarCatalogoDesdeNube() {
             fetch(`${SUPABASE_URL}/rest/v1/catalogo?select=*`, {
                 headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
             }).then(res => res.json()).then(data => {
                 const yaAgregados = new Set();
                 
-                // Primero lo local/global estático
                 for (const [cat, items] of Object.entries(catalogoMaestroGlobal)) {
-                    items.forEach(i => { mapaCategorias[i] = cat; datalist.innerHTML += `<option value="${i}">`; yaAgregados.add(i); });
+                    items.forEach(i => { mapaCategorias[i] = cat; datalist.innerHTML += `<option value=\"${i}\">`; yaAgregados.add(i); });
                 }
                 
-                // Luego lo de la nube
                 data.forEach(item => {
                     if (item.producto && !yaAgregados.has(item.producto)) {
                         mapaCategorias[item.producto] = item.categoria;
-                        datalist.innerHTML += `<option value="${item.producto}">`;
+                        datalist.innerHTML += `<option value=\"${item.producto}\">`;
                         yaAgregados.add(item.producto);
                     }
                 });
@@ -237,30 +279,34 @@
         }
         cargarCatalogoDesdeNube();
 
-        // Mostrar categoría predictiva
         document.getElementById('producto').addEventListener('input', function() {
             const cat = mapaCategorias[this.value];
             document.getElementById('catText').innerText = cat ? `Categoría: ${cat}` : '';
         });
 
-        // Enviar al carrito
         document.getElementById('formAgregar').addEventListener('submit', function(e) {
             e.preventDefault();
             const prod = document.getElementById('producto').value.trim();
             const cant = parseInt(document.getElementById('cantidad').value);
             const obs = document.getElementById('observaciones').value.trim();
+            const fechaSel = document.getElementById('fechaDonativo').value;
             const cat = mapaCategorias[prod] || "Otros";
 
-            // Verificar si ya está en el carrito para sumar la cantidad
-            const indexExistente = carrito.findIndex(i => i.producto === prod && i.obs === obs);
+            // Si es el mismo producto, misma observación y MISMA FECHA, se suma la cantidad
+            const indexExistente = carrito.findIndex(i => i.producto === prod && i.obs === obs && i.fecha === fechaSel);
+            
             if (indexExistente !== -1) {
                 carrito[indexExistente].cantidad += cant;
             } else {
-                carrito.push({ producto: prod, categoria: cat, cantidad: cant, obs: obs });
+                carrito.push({ producto: prod, categoria: cat, cantidad: cant, obs: obs, fecha: fechaSel });
             }
 
             renderCarrito();
-            this.reset();
+            
+            // Limpiar formulario excepto la fecha (por si quiere seguir registrando el mismo día)
+            document.getElementById('producto').value = '';
+            document.getElementById('cantidad').value = '';
+            document.getElementById('observaciones').value = '';
             document.getElementById('catText').innerText = '';
             document.getElementById('producto').focus();
         });
@@ -274,11 +320,12 @@
             this.disabled = true;
             this.innerText = "⏳ Procesando...";
             
-            const fechaActual = new Date().toISOString().split('T')[0];
             const horaActual = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            const fechaCompleta = fechaActual + ' ' + horaActual;
 
             let promesas = carrito.map(item => {
+                // Unimos la fecha elegida en el form con la hora exacta en la que le da a Confirmar
+                const fechaCompleta = item.fecha + ' ' + horaActual;
+                
                 return fetch(`${SUPABASE_URL}/rest/v1/inventario`, {
                     method: "POST",
                     headers: {
@@ -300,9 +347,9 @@
 
             try {
                 await Promise.all(promesas);
-                carrito = []; // Vaciar carrito
+                carrito = []; 
                 renderCarrito();
-                cargarDonacionesConfirmadas(); // Refrescar lista lateral
+                cargarDonacionesConfirmadas(); 
                 this.innerText = "✅ ¡Donación Exitosa!";
                 setTimeout(() => {
                     this.innerText = "Confirmar Donación";
@@ -320,45 +367,42 @@
         // ============================================================
         function cargarDonacionesConfirmadas() {
             const lista = document.getElementById('listaConfirmadas');
-            lista.innerHTML = '<div style="color:#9ca3af; font-size:12px; text-align:center;">Cargando...</div>';
+            lista.innerHTML = '<div style=\"color:#9ca3af; font-size:12px; text-align:center;\">Cargando...</div>';
 
             db.from('inventario')
               .select('*')
               .eq('voluntario', voluntario)
               .order('created_at', { ascending: false })
-              .limit(15) // Mostrar solo los últimos 15 para no saturar
+              .limit(15) 
               .then(({ data, error }) => {
                 lista.innerHTML = '';
                 if (error || !data || data.length === 0) {
-                    lista.innerHTML = '<div style="color:#9ca3af; font-size:12px; text-align:center;">No hay donaciones confirmadas hoy.</div>';
+                    lista.innerHTML = '<div style=\"color:#9ca3af; font-size:12px; text-align:center;\">No hay donaciones confirmadas aún.</div>';
                     return;
                 }
                 
                 data.forEach(item => {
-                    // Extraer solo la hora si la fecha incluye fecha completa
-                    let horaTexto = item.fecha || '';
-                    if (horaTexto.includes(' ')) horaTexto = horaTexto.split(' ')[1];
+                    // Muestra fecha y hora en el historial lateral
+                    let fechaHistorial = item.fecha || '-';
 
                     lista.innerHTML += `
-                        <div class="item-confirmado">
-                            <div class="item-info">
-                                <span class="item-nombre">${item.producto.toLowerCase()}</span>
-                                <span class="item-meta">${horaTexto} | ${item.obs || '-'}</span>
+                        <div class=\"item-confirmado\">
+                            <div class=\"item-info\">
+                                <span class=\"item-nombre\">${item.producto.toLowerCase()}</span>
+                                <span class=\"item-meta\">${fechaHistorial} | ${item.obs || '-'}</span>
                             </div>
-                            <span class="item-qty">+${item.cantidad}</span>
+                            <span class=\"item-qty\">+${item.cantidad}</span>
                         </div>
                     `;
                 });
               });
         }
 
-        // Mantener actualizado el panel derecho si entra un registro
         db.channel('inventario-voluntario')
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inventario', filter: `voluntario=eq.${voluntario}` }, () => {
               cargarDonacionesConfirmadas();
           }).subscribe();
 
-        // Inicializar interfaz
         renderCarrito();
         cargarDonacionesConfirmadas();
     </script>
