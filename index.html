@@ -2,178 +2,394 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOS UCAB - Centro de Acopio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <meta name="description" content="Centro de Acopio SOS UCAB. Plataforma de gestión de inventario y voluntarios.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="config.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 20px; transition: background-color 0.3s, color 0.3s; }
-        .container { max-width: 900px; margin: 0 auto; position: relative; }
-        h1 { color: #1e293b; text-align: center; margin-bottom: 40px; transition: color 0.3s; }
-        .section-title { font-size: 0.85rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
-        
-        .voluntarios-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-bottom: 40px; }
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.3s; border: 2px solid transparent; text-align: center; color: #475569; font-weight: 600; }
-        .card:hover { transform: translateY(-5px); border-color: #4f46e5; background: #eef2ff; color: #4f46e5; }
-        
-        .admin-card { background: #1e293b; color: white; border: 2px solid #1e293b; }
-        .admin-card:hover { background: #334155; border-color: #f59e0b; color: #f59e0b; }
-        .salida-card { background: #e11d48; color: white; border: 2px solid #e11d48; }
-        .salida-card:hover { background: #be123c; border-color: #fda4af; color: white; }
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --card-bg: #ffffff;
+            --navbar-bg: #1e293b;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --danger: #e11d48;
+            --warning: #f59e0b;
+        }
+        body.dark-mode {
+            --bg: #0f172a;
+            --text: #f8fafc;
+            --card-bg: #1e293b;
+            --navbar-bg: #020617;
+            --border: #334155;
+        }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 100; }
-        .modal { background: white; padding: 30px; border-radius: 20px; width: 300px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
-        .btn-entrar { background: #4f46e5; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: 600; font-size: 1rem; }
-        .btn-cancel { background: #e2e8f0; color: #64748b; border: none; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; margin-top: 10px; font-size: 1rem; }
-        .btn-theme { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-        /* --- TEMA OSCURO GLOBAL --- */
-        body.dark-mode { background-color: #0f172a; color: #f8fafc; }
-        body.dark-mode .card, body.dark-mode .modal { background-color: #1e293b; color: #f8fafc; border-color: #334155; }
-        body.dark-mode input { background-color: #0f172a; color: #f8fafc; border-color: #475569; }
-        body.dark-mode .admin-card { background-color: #0f172a; border-color: #4f46e5; }
-        body.dark-mode h1 { color: #f8fafc; }
+        /* HEADER */
+        .header {
+            background-color: var(--navbar-bg);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+       .header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(to right, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+        .btn-theme {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-theme:hover { background: rgba(255, 255, 255, 0.2); }
+
+        /* HERO */
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem 1rem;
+        }
+        .hero h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+        .hero p {
+            color: #64748b;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        body.dark-mode .hero p { color: #94a3b8; }
+
+        /* MAIN CONTENT */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .card:hover::before { transform: scaleX(1); }
+
+        .card.admin::before { background: var(--warning); }
+        .card.despacho::before { background: var(--danger); }
+        .card.inventario::before { background: var(--success); }
+
+        .card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .card p { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; flex: 1; }
+        body.dark-mode .card p { color: #94a3b8; }
+
+        /* INPUTS & BUTTONS */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+        .btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-primary { background: var(--primary); }
+        .btn-primary:hover { background: #4338ca; }
+        .btn-warning { background: var(--warning); }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #be123c; }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #15803d; }
+
+        /* MODAL */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+        .modal-backdrop.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+        }
+        .modal-backdrop.active .modal { transform: scale(1); }
+        .modal h3 { margin-bottom: 1rem; font-size: 1.25rem; }
+        .modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .btn-outline:hover { background: var(--bg); }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <header class="header">
+        <h1>SOS UCAB</h1>
         <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
-        <h1>Centro de Acopio SOS UCAB</h1>
+    </header>
+
+    <section class="hero">
+        <h2>Centro de Acopio</h2>
+        <p>Plataforma integral para la gestión de donativos, inventario y despachos de ayuda humanitaria.</p>
+    </section>
+
+    <main class="container">
         
-        <div class="section-title">Administración</div>
-        <div class="voluntarios-grid">
-            <div class="card admin-card" onclick="window.location.href='inventario_general.html'">📊 Inventario Entradas</div>
-            <div class="card admin-card" onclick="window.location.href='inventario_salidas.html'">📦 Inventario Neto</div>
-            <div class="card admin-card" onclick="abrirModalMaestra()">⚙️ Hoja Maestra</div>
+        <div class="section-title">🤝 Voluntarios</div>
+        <div class="grid">
+            <div class="card">
+                <h3>Registro de Donativos</h3>
+                <p>Ingresa tu nombre para comenzar a registrar los insumos recibidos. No requiere contraseña.</p>
+                <div class="input-group">
+                    <input type="text" id="nombreVoluntario" placeholder="Tu nombre..." onkeypress="if(event.key==='Enter') ingresarVoluntario()">
+                </div>
+                <button class="btn btn-primary" onclick="ingresarVoluntario()">Comenzar Registro</button>
+            </div>
         </div>
 
-        <div class="section-title">Módulo de Despacho</div>
-        <div class="voluntarios-grid">
-            <div class="card salida-card" onclick="abrirModalSalida()">🚚 Registrar Salidas</div>
+        <div class="section-title">🔒 Gestión y Logística</div>
+        <div class="grid">
+            <div class="card admin">
+                <h3>Administración</h3>
+                <p>Gestión del catálogo maestro de productos y revisión de alertas de categorización.</p>
+                <button class="btn btn-warning" onclick="abrirModal('admin')">🔑 Ingresar Admin</button>
+            </div>
+            <div class="card despacho">
+                <h3>Despacho</h3>
+                <p>Módulo para registrar la salida de insumos hacia instituciones y particulares.</p>
+                <button class="btn btn-danger" onclick="abrirModal('despacho')">🚚 Ingresar Despacho</button>
+            </div>
         </div>
 
-        <div class="section-title">Voluntarios (Entradas)</div>
-        <div class="voluntarios-grid" id="gridVoluntarios"></div>
-    </div>
+        <div class="section-title">📊 Consultas Públicas</div>
+        <div class="grid">
+            <div class="card inventario">
+                <h3>Inventario de Entradas</h3>
+                <p>Reporte detallado de todas las donaciones recibidas por categoría y producto.</p>
+                <a href="inventario_general.html" class="btn btn-success">Ver Entradas</a>
+            </div>
+            <div class="card inventario">
+                <h3>Inventario Neto</h3>
+                <p>Balance en tiempo real calculando las entradas menos las salidas registradas.</p>
+                <a href="inventario_salidas.html" class="btn btn-success">Ver Stock Neto</a>
+            </div>
+        </div>
 
-    <!-- Modal Hoja Maestra (Admin) -->
-    <div id="modalMaestra" class="modal-overlay">
+    </main>
+
+    <footer class="footer">
+        SOS UCAB — Centro de Acopio © 2026
+    </footer>
+
+    <!-- MODAL DE ACCESO -->
+    <div id="authModal" class="modal-backdrop" onclick="cerrarModalFondo(event)">
         <div class="modal">
-            <h3>Acceso Administrador</h3>
-            <p>Clave para editar el catálogo:</p>
-            <input type="password" id="passMaestra" placeholder="Introduce la clave...">
-            <button class="btn-entrar" onclick="verificarMaestra()">Entrar</button>
-            <button class="btn-cancel" onclick="cerrarModal('modalMaestra')">Cancelar</button>
-        </div>
-    </div>
-
-    <!-- Modal Voluntario -->
-    <div id="modalVoluntario" class="modal-overlay">
-        <div class="modal">
-            <h3>Acceso Voluntarios</h3>
-            <p>Clave de acceso para voluntarios:</p>
-            <input type="password" id="passVoluntario" placeholder="Introduce la clave..." onkeydown="if(event.key==='Enter') verificarVoluntario()">
-            <button class="btn-entrar" onclick="verificarVoluntario()">Entrar</button>
-            <button class="btn-cancel" onclick="cerrarModal('modalVoluntario')">Cancelar</button>
-        </div>
-    </div>
-
-    <!-- Modal Salida (Despacho) -->
-    <div id="modalSalida" class="modal-overlay">
-        <div class="modal">
-            <h3>Acceso Despacho</h3>
-            <p>Clave para registrar salidas:</p>
-            <input type="password" id="passSalida" placeholder="Introduce la clave..." onkeydown="if(event.key==='Enter') verificarSalida()">
-            <button class="btn-entrar" onclick="verificarSalida()">Entrar</button>
-            <button class="btn-cancel" onclick="cerrarModal('modalSalida')">Cancelar</button>
+            <h3 id="modalTitle">Acceso Protegido</h3>
+            <p id="modalDesc" style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">Ingresa la contraseña de acceso.</p>
+            <input type="password" id="modalPassword" placeholder="Contraseña..." onkeypress="if(event.key==='Enter') validarPassword()">
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn btn-primary" id="btnAuth" onclick="validarPassword()">Entrar</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- MODO OSCURO ---
-        const themeToggle = document.getElementById('themeToggle');
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-            themeToggle.innerText = '☀️';
-        }
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark');
-                themeToggle.innerText = '☀️';
-            } else {
-                localStorage.setItem('theme', 'light');
-                themeToggle.innerText = '🌙';
+        // Inicializar tema desde config.js
+        initTheme('themeToggle');
+
+        // Lógica de Voluntario
+        function ingresarVoluntario() {
+            const nombre = document.getElementById('nombreVoluntario').value.trim();
+            if (!nombre) {
+                alert("Por favor, ingresa tu nombre para continuar.");
+                return;
             }
+            sessionStorage.setItem('userRole', 'voluntario');
+            sessionStorage.setItem('voluntarioActivo', nombre);
+            window.location.href = 'voluntario.html';
+        }
+
+        // Lógica de Modales
+        let rolActualModal = '';
+        const modal = document.getElementById('authModal');
+        const passInput = document.getElementById('modalPassword');
+
+        function abrirModal(rol) {
+            rolActualModal = rol;
+            passInput.value = '';
+            
+            if (rol === 'admin') {
+                document.getElementById('modalTitle').innerText = 'Acceso Administración';
+                document.getElementById('btnAuth').className = 'btn btn-warning';
+            } else if (rol === 'despacho') {
+                document.getElementById('modalTitle').innerText = 'Acceso Despacho';
+                document.getElementById('btnAuth').className = 'btn btn-danger';
+            }
+            
+            modal.classList.add('active');
+            setTimeout(() => passInput.focus(), 100);
+        }
+
+        function cerrarModal() {
+            modal.classList.remove('active');
+            rolActualModal = '';
+        }
+
+        function cerrarModalFondo(event) {
+            if (event.target === modal) cerrarModal();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) cerrarModal();
         });
 
-        // --- VOLUNTARIOS ---
-        const grid = document.getElementById('gridVoluntarios');
-        for (let i = 1; i <= 14; i++) {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerText = `Voluntario ${i}`;
-            card.onclick = () => abrirModalVoluntario(i);
-            grid.appendChild(card);
-        }
-
-        // --- MODALES ---
-        let voluntarioSeleccionado = null;
-
-        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        function abrirModalVoluntario(num) {
-            voluntarioSeleccionado = num;
-            document.getElementById('passVoluntario').value = '';
-            abrirModal('modalVoluntario');
-        }
-        function abrirModalMaestra() {
-            document.getElementById('passMaestra').value = '';
-            abrirModal('modalMaestra');
-        }
-        function abrirModalSalida() {
-            document.getElementById('passSalida').value = '';
-            abrirModal('modalSalida');
-        }
-
-        function verificarMaestra() {
-            const pass = document.getElementById('passMaestra').value;
-            if (pass === "UCAB2026acopio") {
-                sessionStorage.setItem('userRole', 'admin');
-                window.location.href = 'maestra.html';
-            } else {
-                alert("Clave incorrecta.");
+        function validarPassword() {
+            const pass = passInput.value;
+            if (rolActualModal === 'admin') {
+                if (pass === "UCAB2026acopio") {
+                    sessionStorage.setItem('userRole', 'admin');
+                    window.location.href = 'maestra.html';
+                } else {
+                    alert("Contraseña incorrecta.");
+                }
+            } else if (rolActualModal === 'despacho') {
+                if (pass === "despacho") {
+                    sessionStorage.setItem('userRole', 'despacho');
+                    window.location.href = 'salida.html';
+                } else {
+                    alert("Contraseña incorrecta.");
+                }
             }
         }
-
-        function verificarVoluntario() {
-            const pass = document.getElementById('passVoluntario').value;
-            if (pass === "voluntario") {
-                sessionStorage.setItem('userRole', 'voluntario');
-                sessionStorage.setItem('voluntarioActivo', `Voluntario ${voluntarioSeleccionado}`);
-                window.location.href = 'voluntario.html';
-            } else {
-                alert("Clave incorrecta.");
-            }
-        }
-
-        function verificarSalida() {
-            const pass = document.getElementById('passSalida').value;
-            if (pass === "despacho") {
-                sessionStorage.setItem('userRole', 'despacho');
-                window.location.href = 'salida.html';
-            } else {
-                alert("Clave incorrecta.");
-            }
-        }
-
-        // Cerrar modal al hacer clic fuera
-        document.querySelectorAll('.modal-overlay').forEach(el => {
-            el.addEventListener('click', function(e) {
-                if (e.target === this) cerrarModal(this.id);
-            });
-        });
     </script>
 </body>
 </html>

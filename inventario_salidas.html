@@ -2,185 +2,219 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario Neto - SOS UCAB</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding: 20px; color: #1e293b; transition: all 0.3s; }
-        .card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 1000px; margin: auto; transition: all 0.3s; }
-        .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        
-        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 20px; }
-        th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; padding: 10px; text-align: left; transition: all 0.3s; }
-        td { background: #f1f5f9; padding: 14px; font-weight: 500; transition: all 0.3s; }
-        .col-in { color: #16a34a; font-weight: bold; }
-        .col-out { color: #e11d48; font-weight: bold; }
-        .col-net { font-size: 1.1em; }
-        
-        td.status-ok { background-color: #f1f5f9; }
-        td.status-low { background-color: #fef9c3; }
-        td.status-empty { background-color: #fee2e2; }
-        
-        .btn-volver { background: #1e293b; color: white; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; display: inline-block; }
-        .btn-theme { background: none; border: none; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
-        .filtro-cat { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; background: white; }
+        :root {
+            --primary: #4f46e5;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --card-bg: #ffffff;
+            --navbar-bg: #1e293b;
+            --table-row: #f1f5f9;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --danger: #e11d48;
+            --warning: #f59e0b;
+        }
+        body.dark-mode {
+            --bg: #0f172a;
+            --text: #f8fafc;
+            --card-bg: #1e293b;
+            --navbar-bg: #020617;
+            --table-row: #334155;
+            --border: #475569;
+        }
 
-        body.dark-mode { background-color: #0f172a; color: #f8fafc; }
-        body.dark-mode .card { background-color: #1e293b; color: #f8fafc; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        body.dark-mode td { background-color: #334155; color: #f8fafc; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); transition: all 0.3s; padding: 2rem; }
+        
+        .card { background: var(--card-bg); padding: 2rem; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); max-width: 1200px; margin: 0 auto; border: 1px solid var(--border); }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 1rem; }
+        .header-flex h2 { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+        
+        .actions { display: flex; gap: 0.75rem; align-items: center; }
+        .btn { padding: 0.6rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; cursor: pointer; border: none; font-family: inherit; transition: all 0.3s; }
+        .btn-volver { background: var(--navbar-bg); color: white; }
+        .btn-volver:hover { opacity: 0.9; }
+        .btn-theme { background: transparent; font-size: 1.25rem; padding: 0.4rem; }
+        
+        .filters { margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; }
+        .filtro-cat { padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; background: var(--bg); color: var(--text); font-family: inherit; min-width: 250px; }
+        .filtro-cat:focus { outline: none; border-color: var(--primary); }
+        
+        .table-container { overflow-x: auto; max-height: 650px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--card-bg); color: #64748b; font-size: 0.75rem; text-transform: uppercase; padding: 1rem; text-align: left; border-bottom: 2px solid var(--border); position: sticky; top: 0; }
         body.dark-mode th { color: #94a3b8; }
-        body.dark-mode .btn-volver { background-color: #4f46e5; }
-        body.dark-mode .filtro-cat { background-color: #0f172a; color: #f8fafc; border-color: #475569; }
-        body.dark-mode td.status-ok { background-color: #334155; }
-        body.dark-mode td.status-low { background-color: #713f12; }
-        body.dark-mode td.status-empty { background-color: #7f1d1d; }
+        td { padding: 1rem; font-size: 0.95rem; border-bottom: 1px solid var(--border); }
+        
+        .col-in { color: var(--success); font-weight: 600; }
+        .col-out { color: var(--danger); font-weight: 600; }
+        .col-net { font-size: 1.1rem; font-weight: 700; }
+        
+        tr.status-ok td { background-color: var(--table-row); }
+        tr.status-low td { background-color: rgba(245, 158, 11, 0.05); }
+        tr.status-empty td { background-color: rgba(225, 29, 72, 0.05); }
+        
+        body.dark-mode tr.status-low td { background-color: rgba(245, 158, 11, 0.1); }
+        body.dark-mode tr.status-empty td { background-color: rgba(225, 29, 72, 0.1); }
+
+        #liveBadge { background: var(--success); color: white; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 600; transition: background 0.3s; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <div class="header-flex">
-            <h2>📦 Inventario Neto (Entradas vs Salidas)</h2>
-            <div>
-                <button id="themeToggle" class="btn-theme" title="Cambiar tema">🌙</button>
-                <a href="index.html" class="btn-volver">Volver al Inicio</a>
+            <h2>
+                📦 Inventario Neto
+                <span id="liveBadge">🟢 En vivo</span>
+            </h2>
+            <div class="actions">
+                <button id="themeToggle" class="btn btn-theme" title="Cambiar tema">🌙</button>
+                <a href="index.html" class="btn btn-volver">Volver al Inicio</a>
             </div>
         </div>
         
-        <div style="margin: 15px 0; display: flex; gap: 10px; flex-wrap: wrap;">
+        <div class="filters">
             <select id="filtroCategoria" class="filtro-cat">
                 <option value="Todas">Todas las categorías</option>
             </select>
         </div>
         
-        <table>
-            <thead><tr><th>Producto</th><th>Categoría</th><th>Entradas (➕)</th><th>Salidas (➖)</th><th>Stock Real (🟰)</th><th>Último Mov.</th><th>Estado</th></tr></thead>
-            <tbody id="tablaNeto"></tbody>
-        </table>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Categoría</th>
+                        <th>Entradas (➕)</th>
+                        <th>Salidas (➖)</th>
+                        <th>Stock Real (🟰)</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaNeto">
+                    <tr><td colspan="6" style="text-align:center; color:#64748b; padding:2rem;">⏳ Cargando balances...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        // --- MODO OSCURO ---
-        const themeToggle = document.getElementById('themeToggle');
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-            themeToggle.innerText = '☀️';
-        }
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark');
-                themeToggle.innerText = '☀️';
-            } else {
-                localStorage.setItem('theme', 'light');
-                themeToggle.innerText = '🌙';
-            }
-        });
-
-        // ---- SUPABASE ----
-        const SUPABASE_URL = "https://sjvpcgjazubguzoxzwxl.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_dR9ot8lbyJHZTxupgdeJRg_WmqYWFk8";
+        // INIT
+        initTheme('themeToggle');
 
         const resumen = {};
         const filtroCat = document.getElementById('filtroCategoria');
+        const badge = document.getElementById('liveBadge');
 
-        // --- RENDERIZAR TABLA NETA ---
+        // RENDER TABLE
         function renderizar() {
             const tbody = document.getElementById('tablaNeto');
             const catSel = filtroCat.value;
             tbody.innerHTML = '';
 
-            for (const [prod, data] of Object.entries(resumen)) {
-                if (catSel !== 'Todas' && data.categoria !== catSel) continue;
+            const sortedKeys = Object.keys(resumen).sort();
 
-                let claseEstado = "status-ok";
-                let estado = "✅ OK";
-                if (data.neto <= 0) { estado = "🔴 Agotado"; claseEstado = "status-empty"; }
-                else if (data.neto < 10) { estado = "⚠️ Bajo"; claseEstado = "status-low"; }
+            sortedKeys.forEach(prod => {
+                const data = resumen[prod];
+                if (catSel !== 'Todas' && data.categoria !== catSel) return;
 
-                tbody.innerHTML += `<tr>
-                    <td>${prod}</td>
-                    <td>${data.categoria || '-'}</td>
+                let claseFila = "status-ok";
+                let estadoTxt = "✅ OK";
+                
+                if (data.neto <= 0) { 
+                    claseFila = "status-empty"; 
+                    estadoTxt = "🔴 Agotado"; 
+                } else if (data.neto < 10) { 
+                    claseFila = "status-low"; 
+                    estadoTxt = "⚠️ Bajo"; 
+                }
+
+                tbody.innerHTML += `<tr class="${claseFila}">
+                    <td><strong>${prod}</strong></td>
+                    <td><span style="font-size:0.8rem;color:#64748b;">${data.categoria}</span></td>
                     <td class="col-in">${data.entradas}</td>
                     <td class="col-out">${data.salidas}</td>
-                    <td class="col-net ${claseEstado}">${data.neto}</td>
-                    <td>${data.ultimoMov || '-'}</td>
-                    <td>${estado}</td>
+                    <td class="col-net">${data.neto}</td>
+                    <td style="font-size:0.85rem;font-weight:600;">${estadoTxt}</td>
                 </tr>`;
+            });
+
+            if (tbody.children.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:2rem;">No hay productos en esta categoría.</td></tr>';
             }
         }
 
-        // --- CARGAR ENTRADAS Y SALIDAS EN PARALELO DESDE SUPABASE ---
+        // LOAD FROM SUPABASE
         function cargarDatos() {
-            document.getElementById('tablaNeto').innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">⏳ Cargando datos...</td></tr>';
-
-            const headers = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` };
-
-            Promise.all([
-                fetch(`${SUPABASE_URL}/rest/v1/inventario?select=*`, { headers }).then(r => r.json()),
-                fetch(`${SUPABASE_URL}/rest/v1/salidas?select=*`, { headers }).then(r => r.json())
+            return Promise.all([
+                supabaseGet('inventario', 'select=producto,categoria,cantidad'),
+                supabaseGet('salidas', 'select=producto,cantidad')
             ])
             .then(([entradas, salidas]) => {
                 Object.keys(resumen).forEach(k => delete resumen[k]);
 
-                // Procesar entradas
                 entradas.forEach(item => {
-                    if (!resumen[item.producto]) resumen[item.producto] = { categoria: item.categoria || 'Otros', entradas: 0, salidas: 0, neto: 0, ultimoMov: '' };
-                    resumen[item.producto].entradas += parseInt(item.cantidad) || 0;
-                    resumen[item.producto].neto     += parseInt(item.cantidad) || 0;
-                    if (item.fecha && item.fecha > resumen[item.producto].ultimoMov) resumen[item.producto].ultimoMov = item.fecha;
+                    if (!resumen[item.producto]) {
+                        resumen[item.producto] = { categoria: item.categoria || 'Otros', entradas: 0, salidas: 0, neto: 0 };
+                    }
+                    const q = parseInt(item.cantidad) || 0;
+                    resumen[item.producto].entradas += q;
+                    resumen[item.producto].neto += q;
                 });
 
-                // Procesar salidas
                 salidas.forEach(item => {
-                    if (!resumen[item.producto]) resumen[item.producto] = { categoria: 'Otros', entradas: 0, salidas: 0, neto: 0, ultimoMov: '' };
-                    resumen[item.producto].salidas += parseInt(item.cantidad) || 0;
-                    resumen[item.producto].neto    -= parseInt(item.cantidad) || 0;
-                    if (item.fecha && item.fecha > resumen[item.producto].ultimoMov) resumen[item.producto].ultimoMov = item.fecha;
+                    if (!resumen[item.producto]) {
+                        resumen[item.producto] = { categoria: 'Otros', entradas: 0, salidas: 0, neto: 0 };
+                    }
+                    const q = parseInt(item.cantidad) || 0;
+                    resumen[item.producto].salidas += q;
+                    resumen[item.producto].neto -= q;
                 });
 
-                // Poblar filtro de categorías
-                const cats = new Set(Object.values(resumen).map(d => d.categoria).filter(Boolean));
+                const prevCat = filtroCat.value;
+                const cats = new Set(Object.values(resumen).map(d => d.categoria));
                 filtroCat.innerHTML = '<option value="Todas">Todas las categorías</option>';
                 Array.from(cats).sort().forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c; opt.innerText = c;
                     filtroCat.appendChild(opt);
                 });
+                filtroCat.value = prevCat;
 
                 renderizar();
             })
             .catch(err => {
-                document.getElementById('tablaNeto').innerHTML = `<tr><td colspan="7" style="color:#e11d48; text-align:center;">❌ Error: ${err}</td></tr>`;
+                document.getElementById('tablaNeto').innerHTML = `<tr><td colspan="6" style="color:var(--danger); text-align:center; padding:2rem;">❌ Error cargando balances de Supabase.</td></tr>`;
+                console.error(err);
             });
         }
 
         filtroCat.addEventListener('change', renderizar);
         cargarDatos();
-        // ============================================================
-        // SUPABASE REALTIME — inventario neto en vivo
-        // ============================================================
-        const { createClient } = window.supabase;
-        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const badge = document.createElement('span');
-        badge.style.cssText = 'background:#16a34a;color:white;font-size:0.7rem;padding:3px 10px;border-radius:99px;margin-left:10px;';
-        badge.innerText = '🟢 En vivo';
-        document.querySelector('h2')?.appendChild(badge);
-
-        function onCambio() {
-            badge.innerText = '🟡 Actualizando...';
-            badge.style.background = '#f59e0b';
-            cargarDatos().then(() => {
-                badge.innerText = '🟢 En vivo';
-                badge.style.background = '#16a34a';
-            });
+        // REALTIME
+        const db = crearClienteSupabase();
+        if (db) {
+            function onUpdate() {
+                badge.innerText = '🟡 Calculando...';
+                badge.style.background = 'var(--warning)';
+                cargarDatos().then(() => {
+                    badge.innerText = '🟢 En vivo';
+                    badge.style.background = 'var(--success)';
+                });
+            }
+            db.channel('neto-general')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario' }, onUpdate)
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'salidas' }, onUpdate)
+              .subscribe();
         }
-
-        db.channel('neto-admin')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inventario' }, onCambio)
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'salidas' }, onCambio)
-          .subscribe();
     </script>
 </body>
 </html>
