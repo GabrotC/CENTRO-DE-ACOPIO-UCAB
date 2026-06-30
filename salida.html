@@ -2,80 +2,45 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Despacho - SOS UCAB</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <script src="datos.js"></script>
     <style>
-        :root {
-            --primary: #4f46e5;
-            --bg: #f8fafc;
-            --text: #1e293b;
-            --card-bg: #ffffff;
-            --navbar-bg: #e11d48;
-            --table-row: #f1f5f9;
-            --border: #e2e8f0;
-            --success: #16a34a;
-            --danger: #e11d48;
-            --warning: #f59e0b;
-        }
-        body.dark-mode {
-            --bg: #0f172a;
-            --text: #f8fafc;
-            --card-bg: #1e293b;
-            --navbar-bg: #881337;
-            --table-row: #334155;
-            --border: #475569;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); transition: all 0.3s; padding-bottom: 50px; }
+        :root { --primary: #4f46e5; --bg: #f8fafc; --text: #1e293b; --card-bg: #ffffff; --navbar-bg: #e11d48; --border: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; transition: all 0.3s; }
         
-        .navbar { background-color: var(--navbar-bg); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .navbar h2 { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
-        .nav-links { display: flex; gap: 0.75rem; align-items: center; }
-        .btn-nav { color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 8px; background: rgba(255,255,255,0.1); font-size: 0.9rem; border: none; cursor: pointer; transition: background 0.3s; }
-        .btn-nav:hover { background: rgba(255,255,255,0.2); }
-        .btn-theme { font-size: 1.2rem; padding: 0.4rem 0.6rem; }
+        .navbar { background-color: var(--navbar-bg); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-links { display: flex; gap: 10px; align-items: center; }
+        .navbar a, .btn-theme { color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; background: rgba(255,255,255,0.1); font-size: 0.9rem; border: none; cursor: pointer; }
         
-        .main-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem; padding: 2rem; max-width: 1400px; margin: 0 auto; }
-        @media (max-width: 1024px) { .main-layout { grid-template-columns: 1fr; } }
+        .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-top: 4px solid var(--navbar-bg); transition: all 0.3s; }
         
-        .card { background: var(--card-bg); padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); border-top: 4px solid var(--navbar-bg); }
-        .card h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 5px; }
+        th { color: #64748b; text-transform: uppercase; font-size: 0.65rem; padding: 8px; text-align: left; }
+        td { background: #f1f5f9; padding: 8px; font-size: 0.75rem; border-bottom: 1px solid var(--border); }
         
-        .table-container { overflow-x: auto; max-height: 600px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; padding: 0.75rem; text-align: left; border-bottom: 2px solid var(--border); position: sticky; top: 0; background: var(--card-bg); }
-        body.dark-mode th { color: #94a3b8; }
-        td { padding: 0.75rem; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
-        tr:hover td { background: var(--table-row); }
-        
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        label { font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 3px; display: block; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
         .full-width { grid-column: span 2; }
-        label { display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 0.25rem; text-transform: uppercase; }
-        body.dark-mode label { color: #94a3b8; }
-        input, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: all 0.3s; }
-        input:focus, textarea:focus { outline: none; border-color: var(--navbar-bg); box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2); }
-        
-        .btn-add { background: var(--navbar-bg); color: white; border: none; padding: 1rem; width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem; margin-top: 1.5rem; transition: background 0.3s; }
-        .btn-add:hover { background: #be123c; }
-        .btn-add:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-add { background: var(--navbar-bg); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; }
+
+        body.dark-mode { --bg: #0f172a; --text: #f8fafc; --card-bg: #1e293b; --navbar-bg: #881337; --border: #475569; }
+        body.dark-mode td { background-color: #334155; color: #f8fafc; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
-        <h2>🚚 Módulo de Despacho</h2>
+    <div class="navbar">
+        <h2 style="margin:0; font-size: 1.2rem;">🚚 Módulo de Despacho</h2>
         <div class="nav-links">
-            <button id="themeToggle" class="btn-nav btn-theme">🌙</button>
-            <a href="inventario_general.html" class="btn-nav">📊 Inv. Entradas</a>
-            <a href="inventario_salidas.html" class="btn-nav">📦 Inv. Neto</a>
-            <a href="index.html" class="btn-nav" style="background: rgba(0,0,0,0.3);">Volver</a>
+            <button id="themeToggle" class="btn-theme">🌙</button>
+            <a href="inventario_general.html">📊 Inv.</a>
+            <a href="index.html" style="background: #be123c;">Volver</a>
         </div>
-    </nav>
+    </div>
 
     <div class="main-layout">
         <div class="card">
@@ -83,11 +48,9 @@
             <div class="table-container">
                 <table>
                     <thead>
-                        <tr><th>Fecha</th><th>Despacho</th><th>Insumo</th><th>Cant.</th><th>Institución</th><th>Responsable</th></tr>
+                        <tr><th>Fecha</th><th>Despacho</th><th>Insumo</th><th>Cant</th><th>Inst.</th><th>Responsable</th></tr>
                     </thead>
-                    <tbody id="tablaSesion">
-                        <tr><td colspan="6" style="text-align:center; color:#64748b; padding: 2rem;">⏳ Cargando despachos...</td></tr>
-                    </tbody>
+                    <tbody id="tablaSesion"></tbody>
                 </table>
             </div>
         </div>
@@ -96,43 +59,16 @@
             <h2>Registrar Salida</h2>
             <form id="registroForm">
                 <div class="form-grid">
-                    <div>
-                        <label>Fecha</label>
-                        <input type="date" id="fecha" required>
-                    </div>
-                    <div>
-                        <label>N° Despacho / Guía</label>
-                        <input type="text" id="nDespacho" placeholder="Ej. DEP-001" required>
-                    </div>
-                    <div class="full-width">
-                        <label>Insumo</label>
-                        <input list="listaInsumos" id="producto" placeholder="Escribe o selecciona..." required autocomplete="off">
-                        <datalist id="listaInsumos"></datalist>
-                    </div>
-                    <div>
-                        <label>Cantidad (Salida)</label>
-                        <input type="number" id="cantidad" min="1" required>
-                    </div>
-                    <div>
-                        <label>Institución / Destino</label>
-                        <input type="text" id="institucion" placeholder="Ej. Hospital Central" required>
-                    </div>
-                    <div class="full-width">
-                        <label>Contacto Responsable</label>
-                        <input type="text" id="contacto" placeholder="Nombre de quien recibe">
-                    </div>
-                    <div class="full-width">
-                        <label>Persona que acompaña</label>
-                        <input type="text" id="acompanante" placeholder="Chofer o escolta">
-                    </div>
-                    <div class="full-width">
-                        <label>Persona que autorizó</label>
-                        <input type="text" id="autoriza" placeholder="Ej. Coordinador SOS">
-                    </div>
-                    <div class="full-width">
-                        <label>Observaciones</label>
-                        <textarea id="observaciones" rows="2" placeholder="Detalles extra..."></textarea>
-                    </div>
+                    <div><label>Fecha</label><input type="date" id="fecha" required></div>
+                    <div><label>N° Despacho</label><input type="text" id="nDespacho" required></div>
+                    <div class="full-width"><label>Insumo</label><input list="listaInsumos" id="producto" required></div>
+                    <datalist id="listaInsumos"></datalist>
+                    <div><label>Cantidad</label><input type="number" id="cantidad" required></div>
+                    <div><label>Institución</label><input type="text" id="institucion" required></div>
+                    <div class="full-width"><label>Contacto Responsable</label><input type="text" id="contacto"></div>
+                    <div class="full-width"><label>Persona que acompaña</label><input type="text" id="acompanante"></div>
+                    <div class="full-width"><label>Persona que autorizó</label><input type="text" id="autoriza"></div>
+                    <div class="full-width"><label>Observaciones</label><textarea id="observaciones" rows="2"></textarea></div>
                 </div>
                 <button type="submit" id="btnSubmit" class="btn-add">Registrar Despacho en la Nube</button>
             </form>
@@ -140,107 +76,100 @@
     </div>
 
     <script>
-        // INIT
-        verificarAcceso('despacho');
-        initTheme('themeToggle');
-        document.getElementById('fecha').value = fechaHoy();
+        const SUPABASE_URL = "https://sjvpcgjazubguzoxzwxl.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_dR9ot8lbyJHZTxupgdeJRg_WmqYWFk8";
 
-        // DATALIST
-        const datalist = document.getElementById('listaInsumos');
-        const catGlobal = catalogoMaestroGlobal || {};
-        const catLocal = JSON.parse(localStorage.getItem('catalogoAcopio')) || {};
-        const addedProducts = new Set();
-        
-        [catGlobal, catLocal].forEach(source => {
-            Object.values(source).forEach(items => {
-                items.forEach(prod => {
-                    if (!addedProducts.has(prod)) {
-                        const opt = document.createElement('option');
-                        opt.value = prod;
-                        datalist.appendChild(opt);
-                        addedProducts.add(prod);
-                    }
-                });
-            });
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            themeToggle.innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
         });
 
-        // RENDER TABLE FROM SUPABASE
-        async function renderizar() {
+        const datalist = document.getElementById('listaInsumos');
+        [catalogoMaestroGlobal, JSON.parse(localStorage.getItem('catalogoAcopio') || '{}')].forEach(catObj => {
+            for (const cat in catObj) { catObj[cat].forEach(item => datalist.innerHTML += `<option value="${item}">`); }
+        });
+
+        // --- SINCRONIZAR AL ABRIR ---
+        function cargarCatalogoDesdeNube() {
+            fetch(`${SUPABASE_URL}/rest/v1/catalogo?select=*`, {
+                headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+            }).then(res => res.json()).then(data => {
+                const optionsActuales = new Set();
+                Array.from(datalist.options).forEach(opt => optionsActuales.add(opt.value));
+                
+                data.forEach(item => {
+                    if (item.producto && item.producto !== "" && !optionsActuales.has(item.producto)) {
+                        datalist.innerHTML += `<option value="${item.producto}">`;
+                        optionsActuales.add(item.producto);
+                    }
+                });
+            }).catch(err => console.warn("Error sincronizando catálogo:", err));
+        }
+        cargarCatalogoDesdeNube();
+
+        document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+
+        function renderizar() {
             const tbody = document.getElementById('tablaSesion');
-            try {
-                const rows = await supabaseGet('salidas', 'select=*&order=created_at.desc&limit=50');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">⏳ Cargando...</td></tr>';
+            fetch(`${SUPABASE_URL}/rest/v1/salidas?select=*&order=created_at.desc&limit=50`, {
+                headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+            })
+            .then(r => r.json())
+            .then(rows => {
                 tbody.innerHTML = '';
-                if (!rows || rows.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b; padding:2rem;">No hay despachos registrados.</td></tr>';
-                    return;
-                }
+                if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">Sin despachos registrados.</td></tr>'; return; }
                 rows.forEach(item => {
                     tbody.innerHTML += `<tr>
                         <td>${item.fecha || '-'}</td>
-                        <td><strong>${item.n_despacho || '-'}</strong></td>
+                        <td>${item.n_despacho || '-'}</td>
                         <td>${item.producto || '-'}</td>
-                        <td style="color:var(--danger); font-weight:700; font-size:1rem;">-${item.cantidad || 0}</td>
+                        <td style="color:#e11d48; font-weight:bold;">-${item.cantidad || 0}</td>
                         <td>${item.institucion || '-'}</td>
                         <td>${item.contacto || '-'}</td>
                     </tr>`;
                 });
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--danger); padding:2rem;">❌ Error cargando despachos.</td></tr>`;
-            }
+            })
+            .catch(() => { tbody.innerHTML = '<tr><td colspan="6" style="color:#e11d48;">❌ Error cargando despachos.</td></tr>'; });
         }
 
-        // FORM SUBMIT
-        document.getElementById('registroForm').addEventListener('submit', async function(e) {
+        document.getElementById('registroForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
-            btn.disabled = true;
-            btn.innerText = "⏳ Enviando a la nube...";
+            btn.disabled = true; btn.innerText = "Enviando a la nube...";
 
             const data = {
                 fecha: document.getElementById('fecha').value,
-                n_despacho: document.getElementById('nDespacho').value.trim(),
-                producto: document.getElementById('producto').value.trim(),
-                cantidad: parseInt(document.getElementById('cantidad').value),
-                institucion: document.getElementById('institucion').value.trim(),
-                contacto: document.getElementById('contacto').value.trim(),
-                acompanante: document.getElementById('acompanante').value.trim(),
-                autoriza: document.getElementById('autoriza').value.trim(),
-                observaciones: document.getElementById('observaciones').value.trim()
+                nDespacho: document.getElementById('nDespacho').value,
+                producto: document.getElementById('producto').value,
+                cantidad: document.getElementById('cantidad').value,
+                institucion: document.getElementById('institucion').value,
+                contacto: document.getElementById('contacto').value,
+                acompanante: document.getElementById('acompanante').value,
+                autoriza: document.getElementById('autoriza').value,
+                observaciones: document.getElementById('observaciones').value
             };
 
-            try {
-                await supabaseInsert('salidas', data);
-                // Reset partly
-                document.getElementById('producto').value = '';
-                document.getElementById('cantidad').value = '';
-                document.getElementById('producto').focus();
-                
-                // Show success
-                btn.innerText = "✅ ¡Registrado!";
-                btn.style.background = "var(--success)";
-                setTimeout(() => {
-                    btn.innerText = "Registrar Despacho en la Nube";
-                    btn.style.background = "";
-                    btn.disabled = false;
-                }, 2000);
-            } catch (err) {
-                alert("⚠️ Error enviando a Supabase. Revisa la conexión.");
-                btn.innerText = "Registrar Despacho en la Nube";
-                btn.disabled = false;
-            }
+            fetch(`${SUPABASE_URL}/rest/v1/salidas`, {
+                method: "POST",
+                headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
+                body: JSON.stringify({
+                    fecha: data.fecha, n_despacho: data.nDespacho, producto: data.producto,
+                    cantidad: parseInt(data.cantidad), institucion: data.institucion,
+                    contacto: data.contacto, acompanante: data.acompanante,
+                    autoriza: data.autoriza, observaciones: data.observaciones
+                })
+            }).then(res => {
+                if (!res.ok) throw new Error('Error Supabase: ' + res.status);
+                this.reset();
+                document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+                alert("✅ Despacho registrado en Supabase.");
+                renderizar(); 
+            }).catch(err => alert("⚠️ Error enviando a Supabase: " + err))
+              .finally(() => { btn.disabled = false; btn.innerText = "Registrar Despacho en la Nube"; });
         });
 
-        // REALTIME SUBSCRIPTION
-        const db = crearClienteSupabase();
-        if (db) {
-            db.channel('salidas-despacho')
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'salidas' }, () => {
-                  renderizar();
-              })
-              .subscribe();
-        }
-
-        // LOAD INIT
         renderizar();
     </script>
 </body>
