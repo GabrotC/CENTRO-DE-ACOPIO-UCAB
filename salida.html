@@ -76,7 +76,8 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgeyjVhDwEvFvLudMIC9bCUHJiTggJeEIXlfLLy6EOMQi7nq-oDi12lI6urV0CW21H/exec";
+        const SUPABASE_URL = "https://sjvpcgjazubguzoxzwxl.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_dR9ot8lbyJHZTxupgdeJRg_WmqYWFk8";
 
         const themeToggle = document.getElementById('themeToggle');
         themeToggle.addEventListener('click', () => {
@@ -107,6 +108,30 @@
             });
         }
 
+        function renderizar() {
+            const tbody = document.getElementById('tablaSesion');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">⏳ Cargando...</td></tr>';
+            fetch(`${SUPABASE_URL}/rest/v1/salidas?select=*&order=created_at.desc&limit=50`, {
+                headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+            })
+            .then(r => r.json())
+            .then(rows => {
+                tbody.innerHTML = '';
+                if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">Sin despachos registrados.</td></tr>'; return; }
+                rows.forEach(item => {
+                    tbody.innerHTML += `<tr>
+                        <td>${item.fecha || '-'}</td>
+                        <td>${item.n_despacho || '-'}</td>
+                        <td>${item.producto || '-'}</td>
+                        <td style="color:#e11d48; font-weight:bold;">-${item.cantidad || 0}</td>
+                        <td>${item.institucion || '-'}</td>
+                        <td>${item.contacto || '-'}</td>
+                    </tr>`;
+                });
+            })
+            .catch(() => { tbody.innerHTML = '<tr><td colspan="6" style="color:#e11d48;">❌ Error cargando despachos.</td></tr>'; });
+        }
+
         document.getElementById('registroForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
@@ -114,29 +139,46 @@
             btn.innerText = "Enviando a la nube...";
 
             const data = {
-                fecha: document.getElementById('fecha').value,
-                nDespacho: document.getElementById('nDespacho').value,
-                producto: document.getElementById('producto').value,
-                cantidad: document.getElementById('cantidad').value,
-                institucion: document.getElementById('institucion').value,
-                contacto: document.getElementById('contacto').value,
-                acompanante: document.getElementById('acompanante').value,
-                autoriza: document.getElementById('autoriza').value,
+                fecha:        document.getElementById('fecha').value,
+                nDespacho:    document.getElementById('nDespacho').value,
+                producto:     document.getElementById('producto').value,
+                cantidad:     document.getElementById('cantidad').value,
+                institucion:  document.getElementById('institucion').value,
+                contacto:     document.getElementById('contacto').value,
+                acompanante:  document.getElementById('acompanante').value,
+                autoriza:     document.getElementById('autoriza').value,
                 observaciones: document.getElementById('observaciones').value
             };
-            
-            // Guardar local + Enviar a Nube
-            fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) })
-            .then(() => {
-                let salidas = JSON.parse(localStorage.getItem('salidasAcopio')) || [];
-                salidas.push(data);
-                localStorage.setItem('salidasAcopio', JSON.stringify(salidas));
-                renderizar();
+
+            // Enviar a Supabase
+            fetch(`${SUPABASE_URL}/rest/v1/salidas`, {
+                method: "POST",
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type": "application/json",
+                    "Prefer": "return=minimal"
+                },
+                body: JSON.stringify({
+                    fecha:        data.fecha,
+                    n_despacho:   data.nDespacho,
+                    producto:     data.producto,
+                    cantidad:     parseInt(data.cantidad),
+                    institucion:  data.institucion,
+                    contacto:     data.contacto,
+                    acompanante:  data.acompanante,
+                    autoriza:     data.autoriza,
+                    observaciones: data.observaciones
+                })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Error Supabase: ' + res.status);
                 this.reset();
                 document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
-                alert("✅ Despacho registrado en nube y sistema.");
+                alert("✅ Despacho registrado en Supabase.");
+                renderizar(); // recargar tabla desde Supabase
             })
-            .catch(err => alert("Error enviando: " + err))
+            .catch(err => alert("⚠️ Error enviando a Supabase: " + err))
             .finally(() => { btn.disabled = false; btn.innerText = "Registrar Despacho en la Nube"; });
         });
 

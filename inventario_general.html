@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Inventario General - SOS UCAB</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding: 20px; color: #1e293b; transition: all 0.3s; }
         .card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 900px; margin: auto; transition: all 0.3s; }
@@ -74,62 +75,29 @@
             document.getElementById('btnExcel').style.display = 'inline-block';
         }
 
-        // --- DATOS ---
-        const invLogs = JSON.parse(localStorage.getItem('inventarioAcopio')) || [];
+        // ---- SUPABASE ----
+        const SUPABASE_URL = "https://sjvpcgjazubguzoxzwxl.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_dR9ot8lbyJHZTxupgdeJRg_WmqYWFk8";
+
         const resumen = {};
-
-        // Agrupar por producto + presentación (obs)
-        invLogs.forEach(item => {
-            const key = item.producto + '|||' + (item.obs || '');
-            if (!resumen[key]) {
-                resumen[key] = { 
-                    producto: item.producto, 
-                    categoria: item.categoria, 
-                    cantidad: 0, 
-                    obs: item.obs || '',
-                    primeraFecha: item.fecha || '',
-                    ultimaFecha: item.fecha || ''
-                };
-            }
-            resumen[key].cantidad += parseInt(item.cantidad);
-            // Actualizar fechas
-            if (item.fecha) {
-                if (!resumen[key].primeraFecha || item.fecha < resumen[key].primeraFecha) {
-                    resumen[key].primeraFecha = item.fecha;
-                }
-                if (item.fecha > resumen[key].ultimaFecha) {
-                    resumen[key].ultimaFecha = item.fecha;
-                }
-            }
-        });
-
-        // --- POBLAR FILTRO DE CATEGORÍAS ---
-        const categorias = new Set();
-        Object.values(resumen).forEach(d => categorias.add(d.categoria));
         const filtroCat = document.getElementById('filtroCategoria');
-        categorias.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c;
-            opt.innerText = c;
-            filtroCat.appendChild(opt);
-        });
 
-        // --- RENDERIZAR ---
+        // --- RENDERIZAR TABLA ---
         function renderizar() {
             const tbody = document.getElementById('tablaGeneral');
             const catSel = filtroCat.value;
             tbody.innerHTML = '';
-            
+
             for (const [key, data] of Object.entries(resumen)) {
                 if (catSel !== 'Todas' && data.categoria !== catSel) continue;
-                
+
                 let estado = data.cantidad > 10 ? "✅ Hay suficiente" : (data.cantidad > 0 ? "⚠️ Poco stock" : "🔴 Sin existencias");
                 const fechaMostrar = data.ultimaFecha || data.primeraFecha || '-';
-                
+
                 tbody.innerHTML += `<tr>
                     <td>${fechaMostrar}</td>
                     <td>${data.producto}</td>
-                    <td>${data.categoria}</td>
+                    <td>${data.categoria || '-'}</td>
                     <td>${data.cantidad}</td>
                     <td>${data.obs || '-'}</td>
                     <td>${estado}</td>
@@ -137,8 +105,60 @@
             }
         }
 
+        // --- CARGAR DATOS DESDE SUPABASE ---
+        function cargarInventario() {
+            document.getElementById('tablaGeneral').innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">⏳ Cargando datos...</td></tr>';
+
+            fetch(`${SUPABASE_URL}/rest/v1/inventario?select=*&order=created_at.asc`, {
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`
+                }
+            })
+            .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
+            .then(rows => {
+                // Limpiar resumen y reconstruir
+                Object.keys(resumen).forEach(k => delete resumen[k]);
+
+                rows.forEach(item => {
+                    const key = item.producto + '|||' + (item.obs || '');
+                    if (!resumen[key]) {
+                        resumen[key] = {
+                            producto: item.producto,
+                            categoria: item.categoria || '',
+                            cantidad: 0,
+                            obs: item.obs || '',
+                            primeraFecha: item.fecha || '',
+                            ultimaFecha: item.fecha || ''
+                        };
+                    }
+                    resumen[key].cantidad += parseInt(item.cantidad) || 0;
+                    if (item.fecha) {
+                        if (!resumen[key].primeraFecha || item.fecha < resumen[key].primeraFecha)
+                            resumen[key].primeraFecha = item.fecha;
+                        if (item.fecha > resumen[key].ultimaFecha)
+                            resumen[key].ultimaFecha = item.fecha;
+                    }
+                });
+
+                // Poblar filtro de categorías
+                const categorias = new Set(Object.values(resumen).map(d => d.categoria).filter(Boolean));
+                filtroCat.innerHTML = '<option value="Todas">Todas las categorías</option>';
+                Array.from(categorias).sort().forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c; opt.innerText = c;
+                    filtroCat.appendChild(opt);
+                });
+
+                renderizar();
+            })
+            .catch(err => {
+                document.getElementById('tablaGeneral').innerHTML = `<tr><td colspan="6" style="color:#e11d48; text-align:center;">❌ Error cargando datos: ${err}</td></tr>`;
+            });
+        }
+
         filtroCat.addEventListener('change', renderizar);
-        renderizar();
+        cargarInventario();
 
         // --- EXPORTAR CSV ---
         function descargarExcel() {
@@ -153,6 +173,28 @@
             a.download = 'Inventario_Entradas_UCAB.csv';
             a.click();
         }
+        // ============================================================
+        // SUPABASE REALTIME — admin ve cambios en vivo
+        // ============================================================
+        const { createClient } = window.supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const badge = document.createElement('span');
+        badge.id = 'liveBadge';
+        badge.style.cssText = 'background:#16a34a;color:white;font-size:0.7rem;padding:3px 10px;border-radius:99px;margin-left:10px;animation:pulse 2s infinite;';
+        badge.innerText = '🟢 En vivo';
+        document.querySelector('h2')?.appendChild(badge);
+
+        db.channel('inventario-admin')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inventario' }, () => {
+              badge.innerText = '🟡 Actualizando...';
+              badge.style.background = '#f59e0b';
+              cargarInventario().then(() => {
+                  badge.innerText = '🟢 En vivo';
+                  badge.style.background = '#16a34a';
+              });
+          })
+          .subscribe();
     </script>
 </body>
 </html>
