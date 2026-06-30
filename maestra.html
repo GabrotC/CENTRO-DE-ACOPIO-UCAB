@@ -92,9 +92,6 @@
     </div>
 
     <script>
-        // ============================================================
-        // SUPABASE — CONEXIÓN
-        // ============================================================
         const SUPABASE_URL = "https://sjvpcgjazubguzoxzwxl.supabase.co";
         const SUPABASE_KEY = "sb_publishable_dR9ot8lbyJHZTxupgdeJRg_WmqYWFk8";
 
@@ -102,15 +99,9 @@
             if (tipo === "CATALOGO_ADD") {
                 fetch(`${SUPABASE_URL}/rest/v1/catalogo`, {
                     method: "POST",
-                    headers: {
-                        "apikey": SUPABASE_KEY,
-                        "Authorization": `Bearer ${SUPABASE_KEY}`,
-                        "Content-Type": "application/json",
-                        "Prefer": "return=minimal"
-                    },
+                    headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
                     body: JSON.stringify({ categoria, producto })
                 }).catch(err => console.warn('Supabase no disponible (add):', err));
-
             } else if (tipo === "CATALOGO_DEL") {
                 fetch(`${SUPABASE_URL}/rest/v1/catalogo?categoria=eq.${encodeURIComponent(categoria)}&producto=eq.${encodeURIComponent(producto)}`, {
                     method: "DELETE",
@@ -119,33 +110,20 @@
             }
         }
 
-        // ============================================================
-        // VERIFICAR ACCESO
-        // ============================================================
         if (sessionStorage.getItem('userRole') !== 'admin') {
             alert('Acceso restringido. Debes iniciar sesión como administrador.');
             window.location.href = 'index.html';
         }
 
-        // ============================================================
-        // MODO OSCURO
-        // ============================================================
         const themeToggle = document.getElementById('themeToggle');
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-            themeToggle.innerText = '☀️';
-        }
+        if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); themeToggle.innerText = '☀️'; }
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             themeToggle.innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
             localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
         });
 
-        // ============================================================
-        // CATÁLOGO: inicialización
-        // ============================================================
         let catalogoMaestro = JSON.parse(localStorage.getItem('catalogoAcopio'));
-
         if (!catalogoMaestro) {
             catalogoMaestro = JSON.parse(JSON.stringify(catalogoMaestroGlobal));
             localStorage.setItem('catalogoAcopio', JSON.stringify(catalogoMaestro));
@@ -165,22 +143,14 @@
                 selectCat.appendChild(opt);
             });
         }
-        actualizarSelectCategorias();
-
-        // ============================================================
-        // ESTADÍSTICAS
-        // ============================================================
+        
         function actualizarEstadisticas() {
-            const totalCat = Object.keys(catalogoMaestro).length;
+            document.getElementById('totalCategorias').innerText = Object.keys(catalogoMaestro).length;
             let totalProd = 0;
             Object.values(catalogoMaestro).forEach(arr => totalProd += arr.length);
-            document.getElementById('totalCategorias').innerText = totalCat;
             document.getElementById('totalProductos').innerText = totalProd;
         }
 
-        // ============================================================
-        // RENDERIZAR CATÁLOGO
-        // ============================================================
         function renderizarCatalogo(filtro) {
             contenedor.innerHTML = '';
             const texto = (filtro || '').toLowerCase();
@@ -189,13 +159,11 @@
                 let productosFiltrados = productos;
                 if (texto) {
                     productosFiltrados = productos.filter(p => p.toLowerCase().includes(texto));
-                    // Si hay búsqueda y la categoría está vacía o no tiene coincidencias, se oculta
                     if (productosFiltrados.length === 0 && !categoria.toLowerCase().includes(texto)) continue;
                 }
 
                 const caja = document.createElement('div');
                 caja.className = 'categoria-box';
-                
                 let listaHTML = `<h3>${categoria} <span style="font-weight:normal;font-size:11px;color:#999;">(${productosFiltrados.length})</span></h3><ul>`;
                 
                 if (productosFiltrados.length === 0 && !texto) {
@@ -208,57 +176,62 @@
                         </li>`;
                     });
                 }
-                listaHTML += `</ul>`;
-                
-                caja.innerHTML = listaHTML;
+                caja.innerHTML = listaHTML + `</ul>`;
                 contenedor.appendChild(caja);
             }
         }
 
-        // ============================================================
-        // CREAR NUEVA CATEGORÍA
-        // ============================================================
+        // --- SINCRONIZAR AL ABRIR ---
+        function cargarCatalogoDesdeNube() {
+            fetch(`${SUPABASE_URL}/rest/v1/catalogo?select=*`, {
+                headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+            }).then(res => res.json()).then(data => {
+                let hayCambios = false;
+                data.forEach(item => {
+                    if (!catalogoMaestro[item.categoria]) { catalogoMaestro[item.categoria] = []; hayCambios = true; }
+                    if (item.producto && item.producto !== "" && !catalogoMaestro[item.categoria].includes(item.producto)) {
+                        catalogoMaestro[item.categoria].push(item.producto);
+                        hayCambios = true;
+                    }
+                });
+                if (hayCambios) {
+                    localStorage.setItem('catalogoAcopio', JSON.stringify(catalogoMaestro));
+                    actualizarSelectCategorias();
+                    renderizarCatalogo(document.getElementById('buscadorCatalogo').value);
+                    actualizarEstadisticas();
+                }
+            }).catch(err => console.warn("Error descargando catálogo global:", err));
+        }
+
         formCategoria.addEventListener('submit', function(event) {
             event.preventDefault();
             const nuevaCat = document.getElementById('nuevaCategoriaInput').value.trim();
-
             if (!nuevaCat) return;
 
-            // Verificar si ya existe (ignorando mayúsculas/minúsculas)
             const existe = Object.keys(catalogoMaestro).some(c => c.toLowerCase() === nuevaCat.toLowerCase());
-            
-            if (existe) {
-                alert('⚠️ Esa categoría ya existe.');
-                return;
-            }
+            if (existe) { alert('⚠️ Esa categoría ya existe.'); return; }
 
-            // Crear la categoría vacía
             catalogoMaestro[nuevaCat] = [];
             localStorage.setItem('catalogoAcopio', JSON.stringify(catalogoMaestro));
+            
+            // Subimos la categoría a la nube para que todos la vean
+            sincronizarCatalogoNube("CATALOGO_ADD", nuevaCat, "");
 
-            // Actualizar la interfaz
             actualizarSelectCategorias();
             renderizarCatalogo(document.getElementById('buscadorCatalogo').value);
             actualizarEstadisticas();
 
             document.getElementById('nuevaCategoriaInput').value = '';
-            alert(`✅ Categoría "${nuevaCat}" creada con éxito.\nYa puedes seleccionarla abajo para añadirle productos.`);
+            alert(`✅ Categoría "${nuevaCat}" creada con éxito.`);
         });
 
-        // ============================================================
-        // AÑADIR PRODUCTO Y ACTUALIZAR HISTORIAL AUTOMÁTICAMENTE
-        // ============================================================
         formProducto.addEventListener('submit', function(event) {
             event.preventDefault();
             const categoria = document.getElementById('selectCategoria').value;
             const nuevoProd = document.getElementById('nuevoProducto').value.trim();
 
             if (!categoria || !nuevoProd) return;
-
-            if (catalogoMaestro[categoria].includes(nuevoProd)) {
-                alert('Ese producto ya existe en esta categoría.');
-                return;
-            }
+            if (catalogoMaestro[categoria].includes(nuevoProd)) { alert('Ese producto ya existe en esta categoría.'); return; }
 
             catalogoMaestro[categoria].push(nuevoProd);
             catalogoMaestro[categoria].sort();
@@ -266,49 +239,36 @@
 
             sincronizarCatalogoNube("CATALOGO_ADD", categoria, nuevoProd);
 
-            // ✨ ACTUALIZACIÓN RETROACTIVA EN LA BASE DE DATOS ✨
             fetch(`${SUPABASE_URL}/rest/v1/inventario?producto=eq.${encodeURIComponent(nuevoProd)}`, {
                 method: "PATCH",
-                headers: {
-                    "apikey": SUPABASE_KEY,
-                    "Authorization": `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type": "application/json",
-                    "Prefer": "return=minimal"
-                },
+                headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
                 body: JSON.stringify({ categoria: categoria })
-            }).then(() => console.log(`Registros pasados de '${nuevoProd}' actualizados a '${categoria}'`))
-              .catch(err => console.error("Error actualizando registros retroactivos:", err));
+            }).catch(err => console.error("Error actualizando registros retroactivos:", err));
 
             renderizarCatalogo(document.getElementById('buscadorCatalogo').value);
             actualizarEstadisticas();
             document.getElementById('nuevoProducto').value = '';
-            alert(`"${nuevoProd}" añadido a ${categoria}.\n\n✅ Todos los registros anteriores que decían "Otros" han sido actualizados a su nueva categoría en la base de datos.`);
+            alert(`"${nuevoProd}" añadido a ${categoria}.\n\n✅ Registros viejos actualizados.`);
         });
 
-        // ============================================================
-        // ELIMINAR PRODUCTO
-        // ============================================================
         window.eliminarProducto = function(categoria, producto) {
             if (!confirm(`¿Eliminar "${producto}" de ${categoria}?`)) return;
-
             const idx = catalogoMaestro[categoria].indexOf(producto);
             if (idx > -1) {
                 catalogoMaestro[categoria].splice(idx, 1);
                 localStorage.setItem('catalogoAcopio', JSON.stringify(catalogoMaestro));
-
                 sincronizarCatalogoNube("CATALOGO_DEL", categoria, producto);
-
                 renderizarCatalogo(document.getElementById('buscadorCatalogo').value);
                 actualizarEstadisticas();
             }
         };
 
-        document.getElementById('buscadorCatalogo').addEventListener('input', function() {
-            renderizarCatalogo(this.value);
-        });
-
+        document.getElementById('buscadorCatalogo').addEventListener('input', function() { renderizarCatalogo(this.value); });
+        
+        actualizarSelectCategorias();
         renderizarCatalogo();
         actualizarEstadisticas();
+        cargarCatalogoDesdeNube(); // Fuerza la actualización apenas abre
     </script>
 </body>
 </html>
