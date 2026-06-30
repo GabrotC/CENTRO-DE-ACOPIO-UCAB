@@ -79,7 +79,6 @@
 
     <script>
         // ============================================================
-        // ============================================================
         // SUPABASE — BASE DE DATOS EN LA NUBE
         // ============================================================
         const SUPABASE_URL = "https://sjvpcgjazubguzoxzwxl.supabase.co";
@@ -120,21 +119,17 @@
         const voluntario = sessionStorage.getItem('voluntarioActivo') || "Voluntario";
         document.getElementById('nombreVoluntario').innerText = `🤝 Portal de ${voluntario}`;
 
-        // Sesión actual en memoria (solo dura mientras la pestaña está abierta)
-        let miSesion = [];
+        let invGeneral = JSON.parse(localStorage.getItem('inventarioAcopio')) || [];
 
         // ============================================================
-        // CATÁLOGO UNIFICADO: datos.js + añadidos desde maestra.html
+        // CATÁLOGO UNIFICADO
         // ============================================================
         const catalogoLocal = JSON.parse(localStorage.getItem('catalogoAcopio')) || {};
         const mapaCategorias = {};
         const datalist = document.getElementById('listaInsumos');
 
-        // Función para poblar autocomplete desde ambas fuentes
         function poblarCatalogo() {
             const yaAgregados = new Set();
-            
-            // 1. Desde datos.js (catalogoMaestroGlobal)
             for (const [cat, items] of Object.entries(catalogoMaestroGlobal)) {
                 items.forEach(i => {
                     if (!yaAgregados.has(i)) {
@@ -144,8 +139,6 @@
                     }
                 });
             }
-            
-            // 2. Desde localStorage (añadidos por maestra.html)
             for (const [cat, items] of Object.entries(catalogoLocal)) {
                 items.forEach(i => {
                     if (!yaAgregados.has(i)) {
@@ -158,12 +151,8 @@
         }
         poblarCatalogo();
 
-        // ============================================================
-        // AUTOCOMPLETAR FECHA
-        // ============================================================
         document.getElementById('fechaDonativo').value = new Date().toISOString().split('T')[0];
 
-        // Mostrar categoría al seleccionar producto
         document.getElementById('producto').addEventListener('input', function() {
             const cat = mapaCategorias[this.value];
             document.getElementById('catBox').style.display = cat ? 'block' : 'none';
@@ -187,13 +176,13 @@
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">Aún no has registrado nada esta sesión.</td></tr>';
                     return;
                 }
-                data.forEach((item, index) => {
+                data.forEach(item => {
                     tbody.innerHTML += `<tr>
                         <td>${item.fecha || '-'}</td>
                         <td>${item.producto}</td>
-                        <td>${item.cantidad}</td>
+                        <td style="font-weight:bold;">${item.cantidad}</td>
                         <td>${item.obs || '-'}</td>
-                        <td style="color:#64748b; font-size:0.8rem;">✅ Guardado</td>
+                        <td style="color:#16a34a; font-size:0.8rem; font-weight:600;">✅ Nube</td>
                     </tr>`;
                 });
               });
@@ -218,18 +207,6 @@
             btn.disabled = true;
             btn.innerText = '⏳ Enviando a la nube...';
 
-            // Datos a guardar y enviar — incluye "tipo" para diferenciar entradas de salidas en el Sheet
-            const datos = {
-                tipo: "ENTRADA",
-                voluntario: voluntario,
-                fecha: fechaCompleta,
-                producto: prod,
-                categoria: cat,
-                cantidad: cant,
-                obs: obs
-            };
-
-            // ---- ENVIAR A SUPABASE ----
             fetch(`${SUPABASE_URL}/rest/v1/inventario`, {
                 method: "POST",
                 headers: {
@@ -249,14 +226,16 @@
             })
             .then(res => {
                 if (!res.ok) throw new Error('Error Supabase: ' + res.status);
-                // Éxito: guardar local
-                miSesion.push({ fecha: fechaCompleta, producto: prod, categoria: cat, cantidad: cant, obs });
+                
+                // Respaldo local
                 invGeneral.push({ fecha: fechaCompleta, producto: prod, categoria: cat, cantidad: cant, obs });
+                localStorage.setItem('inventarioAcopio', JSON.stringify(invGeneral));
+                
                 renderizar();
                 this.reset();
                 document.getElementById('catBox').style.display = 'none';
                 document.getElementById('fechaDonativo').value = new Date().toISOString().split('T')[0];
-                btn.innerText = '✅ ¡Registrado!';
+                btn.innerText = '✅ ¡Registrado con éxito!';
                 btn.style.background = '#16a34a';
                 setTimeout(() => {
                     btn.innerText = 'Añadir al Inventario';
@@ -266,16 +245,10 @@
             })
             .catch(err => {
                 console.warn('Error enviando a Supabase:', err);
-                miSesion.push({ fecha: fechaCompleta, producto: prod, categoria: cat, cantidad: cant, obs });
-                invGeneral.push({ fecha: fechaCompleta, producto: prod, categoria: cat, cantidad: cant, obs });
-                renderizar();
-                this.reset();
-                document.getElementById('catBox').style.display = 'none';
-                document.getElementById('fechaDonativo').value = new Date().toISOString().split('T')[0];
-                btn.innerText = '⚠️ Sin conexión (guardado local)';
-                btn.style.background = '#f59e0b';
+                btn.innerText = '⚠️ Error de conexión';
+                btn.style.background = '#e11d48';
                 setTimeout(() => {
-                    btn.innerText = 'Añadir al Inventario';
+                    btn.innerText = 'Intentar de nuevo';
                     btn.style.background = '';
                     btn.disabled = false;
                 }, 3000);
@@ -283,7 +256,7 @@
         });
 
         // ============================================================
-        // SUPABASE REALTIME — actualiza la tabla automáticamente
+        // SUPABASE REALTIME
         // ============================================================
         db.channel('inventario-voluntario')
           .on('postgres_changes', {
@@ -294,9 +267,6 @@
           }, () => renderizar())
           .subscribe();
 
-        // ============================================================
-        // RENDER INICIAL
-        // ============================================================
         renderizar();
     </script>
 </body>
